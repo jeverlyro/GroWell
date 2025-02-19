@@ -1,8 +1,6 @@
-### **Repository Description for GitHub - GrowWell**  
+# **GroWell - Prevent Stunting Early**  
 
-# **GrowWell - Prevent Stunting Early**  
-
-**GrowWell** is a mobile application designed to help parents monitor and prevent the risk of stunting in children. This app utilizes AI-powered analysis, growth tracking, and expert consultation to provide early detection and nutritional recommendations. Built with the **MERN stack (MongoDB, Express.js, React Native, Node.js)**, GrowWell ensures seamless performance, real-time data processing, and cross-platform compatibility.  
+**GroWell** is a mobile application designed to help parents monitor and prevent the risk of stunting in children. This app utilizes AI-powered analysis, growth tracking, and expert consultation to provide early detection and nutritional recommendations. Built with the **MERN stack (MongoDB, Express.js, React Native, Node.js)**, GroWell ensures seamless performance, real-time data processing, and cross-platform compatibility.  
 
 ## **Features**  
 
@@ -27,16 +25,16 @@
 Clone this repository and follow the setup guide to run the project locally.  
 
 ```bash
-git clone https://github.com/yourusername/GrowWell.git
-cd GrowWell
+git clone https://github.com/yourusername/GroWell.git
+cd GroWell
 ```
 
 For more details, check the **documentation** section.  
 
 ---
 
-### **Why GrowWell?**  
-Stunting is a serious public health issue that affects millions of children worldwide. By providing early detection, education, and expert guidance, GrowWell aims to **empower parents with the tools they need to ensure a healthy future for their children.**  
+### **Why GroWell?**  
+Stunting is a serious public health issue that affects millions of children worldwide. By providing early detection, education, and expert guidance, GroWell aims to **empower parents with the tools they need to ensure a healthy future for their children.**  
 
 💡 **Let's build a healthier generation together!** 💡  
 
