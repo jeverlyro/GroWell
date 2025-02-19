@@ -4,11 +4,9 @@
 
 ## **Features**  
 
-✅ **Stunting Risk Calculator** – AI-based analysis to detect early signs of stunting.  
-✅ **Growth Monitoring** – Track child’s height and weight with WHO standards.  
+✅ **Stunting Risk Calculator** – AI-based analysis to detect early signs of stunting. 
 ✅ **Personalized Nutrition Plans** – Meal recommendations based on age and health data.  
-✅ **Educational Articles & Videos** – Expert-backed insights on child health and nutrition.  
-✅ **Consultation with Experts** – Chat or video call with pediatricians and nutritionists.  
+✅ **Educational Articles & Videos** – Expert-backed insights on child health and nutrition. 
 ✅ **Reminders & Notifications** – Alerts for immunizations, vitamins, and meal schedules.  
 ✅ **Community Forum** – Connect with other parents and share experiences.  
 
