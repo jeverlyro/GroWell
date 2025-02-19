@@ -38,6 +38,3 @@ Stunting is a serious public health issue that affects millions of children worl
 
 💡 **Let's build a healthier generation together!** 💡  
 
----
-
-Let me know if you want any modifications! 😊
