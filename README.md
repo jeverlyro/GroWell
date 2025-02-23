@@ -1,50 +1,39 @@
-# Welcome to your Expo app 👋
+# **GrowWell - Prevent Stunting Early**  
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**GrowWell** is a mobile application designed to help parents monitor and prevent the risk of stunting in children. This app utilizes AI-powered analysis, growth tracking, and expert consultation to provide early detection and nutritional recommendations. Built with the **MERN stack (MongoDB, Express.js, React Native, Node.js)**, GrowWell ensures seamless performance, real-time data processing, and cross-platform compatibility.  
 
-## Get started
+## **Features**  
 
-1. Install dependencies
+✅ **Stunting Risk Calculator** – AI-based analysis to detect early signs of stunting.  
+✅ **Personalized Nutrition Plans** – Meal recommendations based on age and health data.  
+✅ **Educational Articles & Videos** – Expert-backed insights on child health and nutrition.  
+✅ **Reminders & Notifications** – Alerts for immunizations, vitamins, and meal schedules.  
+✅ **Community Forum** – Connect with other parents and share experiences.  
 
-   ```bash
-   npm install
-   ```
+## **Tech Stack**  
 
-2. Start the app
+🚀 **Frontend**: React Native  
+🚀 **Backend**: Node.js & Express.js  
+🚀 **Database**: MongoDB  
+🚀 **Authentication**: JWT (JSON Web Token)  
+🚀 **AI & Data Processing**: Python (for risk analysis)  
 
-   ```bash
-    npx expo start
-   ```
+## **Getting Started**  
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Clone this repository and follow the setup guide to run the project locally.  
 
 ```bash
-npm run reset-project
+git clone https://github.com/yourusername/GrowWell.git
+cd GrowWell
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+For more details, check the **documentation** section.  
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+### **Why GrowWell?**  
+Stunting is a serious public health issue that affects millions of children worldwide. By providing early detection, education, and expert guidance, GrowWell aims to **empower parents with the tools they need to ensure a healthy future for their children.**  
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+💡 **Let's build a healthier generation together!** 💡  
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
