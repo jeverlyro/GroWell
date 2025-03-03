@@ -1,13 +1,14 @@
 {
   "expo": {
     "name": "GroWell",
-    "slug": "GroWell",
+    "slug": "growell",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "entryPoint": "./App.tsx",
     "ios": {
       "supportsTablet": true
     },
@@ -23,7 +24,6 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -32,10 +32,29 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "fonts": [
+      {
+        "asset": "assets/fonts/PlusJakartaSans-Regular.ttf",
+        "family": "PlusJakartaSans-Regular"
+      },
+      {
+        "asset": "assets/fonts/PlusJakartaSans-Medium.ttf",
+        "family": "PlusJakartaSans-Medium"
+      },
+      {
+        "asset": "assets/fonts/PlusJakartaSans-Bold.ttf",
+        "family": "PlusJakartaSans-Bold"
+      },
+      {
+        "asset": "assets/fonts/PlusJakartaSans-SemiBold.ttf",
+        "family": "PlusJakartaSans-SemiBold"
+      }
+    ]
   }
 }

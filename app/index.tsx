@@ -9,7 +9,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>GroWell.</Text>
+      <Text>Tanpa kusadar ku mulai besanya</Text>
     </View>
   );
 }

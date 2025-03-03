@@ -1,6 +1,6 @@
-# **GrowWell - Prevent Stunting Early**  
+# **GroWell - Prevent Stunting Early**  
 
-**GrowWell** is a mobile application designed to help parents monitor and prevent the risk of stunting in children. This app utilizes AI-powered analysis, growth tracking, and expert consultation to provide early detection and nutritional recommendations. Built with the **MERN stack (MongoDB, Express.js, React Native, Node.js)**, GrowWell ensures seamless performance, real-time data processing, and cross-platform compatibility.  
+**GroWell** is a mobile application designed to help parents monitor and prevent the risk of stunting in children. This app utilizes AI-powered analysis, growth tracking, and expert consultation to provide early detection and nutritional recommendations. Built with the **MERN stack (MongoDB, Express.js, React Native, Node.js)**, GrowWell ensures seamless performance, real-time data processing, and cross-platform compatibility.  
 
 ## **Features**  
 
