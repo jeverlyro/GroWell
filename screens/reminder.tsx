@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import BottomNavBar from '../components/BottomNavBar';
 
 const RemindersScreen = ({ navigation }) => {
   const [reminders, setReminders] = useState([
@@ -112,7 +111,6 @@ const RemindersScreen = ({ navigation }) => {
         </TouchableOpacity>
       </ScrollView>
       
-      <BottomNavBar />
     </SafeAreaView>
   );
 };

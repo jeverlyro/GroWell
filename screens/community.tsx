@@ -118,8 +118,6 @@ const CommunityScreen = () => {
           <MaterialIcons name="edit" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-      
-      <BottomNavBar />
     </SafeAreaView>
   );
 };
@@ -204,7 +202,7 @@ const styles = StyleSheet.create({
   },
   discussionsContainer: {
     padding: 15,
-    paddingBottom: 80, // Add extra padding at the bottom to account for FAB
+    paddingBottom: 80,
   },
   discussionCard: {
     backgroundColor: '#FFFFFF',

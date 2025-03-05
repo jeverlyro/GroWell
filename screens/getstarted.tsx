@@ -10,7 +10,6 @@ const GetStartedScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(false);
 
-  // Load the fonts
   const [fontsLoaded] = useFonts({
     'PlusJakartaSans-Regular': require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
     'PlusJakartaSans-Medium': require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
@@ -29,7 +28,6 @@ const GetStartedScreen = ({ navigation }) => {
     }
   };
 
-  // Show loading screen while fonts are loading
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -49,7 +47,7 @@ const GetStartedScreen = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={24} color="#333333" />
+            <MaterialIcons name="arrow-back" size={19} color="#333333" />
           </TouchableOpacity>
 
           <Text style={styles.title}>
@@ -150,10 +148,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'PlusJakartaSans-Medium',
     color: '#333333',
-    marginBottom: 5,
   },
   input: {
     fontFamily: 'PlusJakartaSans-Regular',
@@ -161,7 +158,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#CCCCCC',
     paddingVertical: 10,
     paddingHorizontal: 0,
-    fontSize: 16,
+    fontSize: 12,
     marginBottom: 25,
     color: '#333333',
   },
@@ -170,7 +167,7 @@ const styles = StyleSheet.create({
   },
   termsText: {
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 10,
     color: '#666666',
     fontSize: 14,
     fontFamily: 'PlusJakartaSans-Regular',
@@ -182,7 +179,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   loginText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666666',
     fontFamily: 'PlusJakartaSans-Regular',
   },

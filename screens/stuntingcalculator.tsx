@@ -1,7 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/button';
+import Svg, { Circle, Path } from 'react-native-svg';
+import { useFonts } from 'expo-font';
+
+const NumericInput = React.memo(({ value, onChangeText, placeholder, style }) => {
+  const handleChangeText = useCallback((text) => {
+    // Only allow numeric input with decimal point
+    const numericRegex = /^[0-9]*\.?[0-9]*$/;
+    if (text === '' || numericRegex.test(text)) {
+      onChangeText(text);
+    }
+  }, [onChangeText]);
+
+  return (
+    <TextInput
+      style={style}
+      value={value}
+      onChangeText={handleChangeText}
+      placeholder={placeholder}
+      placeholderTextColor="#BDBDBD"
+      keyboardType="numeric"
+      maxLength={6} // Reasonable limit for height/weight values
+    />
+  );
+});
 
 const StuntingCalculatorScreen = ({ navigation }) => {
   const [childName, setChildName] = useState('');
@@ -11,8 +35,24 @@ const StuntingCalculatorScreen = ({ navigation }) => {
   const [weight, setWeight] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [riskLevel, setRiskLevel] = useState(null);
+  const [riskPercentage, setRiskPercentage] = useState(0);
 
-  const calculateRisk = () => {
+  // Load Plus Jakarta Sans font
+  const [fontsLoaded] = useFonts({
+    'PlusJakartaSans-Regular': require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
+    'PlusJakartaSans-Medium': require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
+    'PlusJakartaSans-SemiBold': require('../assets/fonts/PlusJakartaSans-SemiBold.ttf'),
+    'PlusJakartaSans-Bold': require('../assets/fonts/PlusJakartaSans-Bold.ttf'),
+  });
+
+  const handleAgeChange = useCallback((text) => {
+    // Only allow numeric input
+    if (text === '' || /^[0-9]+$/.test(text)) {
+      setAge(text);
+    }
+  }, []);
+
+  const calculateRisk = useCallback(() => {
     // This is a simplified version. In a real app, you would use
     // WHO growth standards or other medical algorithms
     const ageInMonths = parseInt(age);
@@ -27,10 +67,13 @@ const StuntingCalculatorScreen = ({ navigation }) => {
       
       if (heightForAgeZ < -3) {
         setRiskLevel('high');
+        setRiskPercentage(85); // 85% risk
       } else if (heightForAgeZ < -2) {
         setRiskLevel('medium');
+        setRiskPercentage(50); // 50% risk
       } else {
         setRiskLevel('low');
+        setRiskPercentage(15); // 15% risk
       }
     } else {
       // Example threshold for girls (simplified)
@@ -39,17 +82,20 @@ const StuntingCalculatorScreen = ({ navigation }) => {
       
       if (heightForAgeZ < -3) {
         setRiskLevel('high');
+        setRiskPercentage(85); // 85% risk
       } else if (heightForAgeZ < -2) {
         setRiskLevel('medium');
+        setRiskPercentage(50); // 50% risk
       } else {
         setRiskLevel('low');
+        setRiskPercentage(15); // 15% risk
       }
     }
     
     setShowResults(true);
-  };
+  }, [age, gender, height, weight]);
 
-  const isFormValid = () => {
+  const isFormValid = useMemo(() => {
     return (
       childName.trim() !== '' &&
       age !== '' &&
@@ -57,43 +103,106 @@ const StuntingCalculatorScreen = ({ navigation }) => {
       height !== '' &&
       weight !== ''
     );
-  };
+  }, [childName, age, gender, height, weight]);
 
   const renderResults = () => {
     let resultColor = '#20C997'; // Green for low risk
     let resultText = 'Low Risk';
     let resultDescription = 'Your child appears to be growing well according to WHO standards.';
+    let iconName = 'check-circle';
     
     if (riskLevel === 'medium') {
       resultColor = '#FFC107'; // Yellow/amber for medium risk
       resultText = 'Moderate Risk';
       resultDescription = 'Your child may be at risk for stunting. We recommend consultation with a healthcare provider.';
+      iconName = 'alert-circle';
     } else if (riskLevel === 'high') {
       resultColor = '#FF5252'; // Red for high risk
       resultText = 'High Risk';
       resultDescription = 'Your child shows significant signs of stunting risk. Please consult with a healthcare provider as soon as possible.';
+      iconName = 'alert-triangle';
     }
+    
+    // Calculate dimensions for circular progress
+    const size = 220;
+    const strokeWidth = 18;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const strokeDashoffset = circumference - (riskPercentage / 100) * circumference;
+    const center = size / 2;
     
     return (
       <View style={styles.resultsContainer}>
-        <Text style={styles.resultsTitle}>Results</Text>
-        <View style={[styles.riskIndicator, { backgroundColor: resultColor }]}>
-          <Text style={styles.riskText}>{resultText}</Text>
-        </View>
-        <Text style={styles.resultDescription}>{resultDescription}</Text>
+        <Text style={styles.resultsTitle}>Results for {childName}</Text>
         
-        <Text style={styles.recommendationsTitle}>Recommendations:</Text>
-        <View style={styles.recommendationItem}>
-          <View style={styles.bulletPoint} />
-          <Text style={styles.recommendationText}>Track your child's growth regularly</Text>
+        {/* Circular Risk Indicator with enhanced visual */}
+        <View style={[styles.circularProgressContainer, { shadowColor: resultColor }]}>
+          <Svg width={size} height={size}>
+            {/* Background Circle with gradient */}
+            <Circle
+              cx={center}
+              cy={center}
+              r={radius}
+              stroke="#EAEAEA"
+              strokeWidth={strokeWidth}
+              fill="transparent"
+            />
+            {/* Progress Circle */}
+            <Circle
+              cx={center}
+              cy={center}
+              r={radius}
+              stroke={resultColor}
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              transform={`rotate(-90, ${center}, ${center})`}
+            />
+          </Svg>
+          <View style={styles.riskPercentageContainer}>
+            <Text style={[styles.riskPercentageText, { color: resultColor }]}>{riskPercentage}%</Text>
+            <Text style={[styles.riskText, { color: resultColor }]}>{resultText}</Text>
+          </View>
         </View>
-        <View style={styles.recommendationItem}>
-          <View style={styles.bulletPoint} />
-          <Text style={styles.recommendationText}>Ensure a balanced diet rich in proteins and nutrients</Text>
+        
+        <View style={[styles.resultSummaryCard, { borderLeftColor: resultColor }]}>
+          <Text style={styles.resultDescription}>{resultDescription}</Text>
         </View>
-        <View style={styles.recommendationItem}>
-          <View style={styles.bulletPoint} />
-          <Text style={styles.recommendationText}>Consider consulting with a pediatrician</Text>
+        
+        <View style={styles.childInfoContainer}>
+          <Text style={styles.childInfoTitle}>Child Information</Text>
+          <View style={styles.childInfoItem}>
+            <Text style={styles.childInfoLabel}>Age:</Text>
+            <Text style={styles.childInfoValue}>{age} months</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.childInfoItem}>
+            <Text style={styles.childInfoLabel}>Height:</Text>
+            <Text style={styles.childInfoValue}>{height} cm</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.childInfoItem}>
+            <Text style={styles.childInfoLabel}>Weight:</Text>
+            <Text style={styles.childInfoValue}>{weight} kg</Text>
+          </View>
+        </View>
+        
+        <Text style={styles.recommendationsTitle}>Recommendations</Text>
+        <View style={styles.recommendationsCard}>
+          <View style={styles.recommendationItem}>
+            <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
+            <Text style={styles.recommendationText}>Track your child's growth regularly</Text>
+          </View>
+          <View style={styles.recommendationItem}>
+            <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
+            <Text style={styles.recommendationText}>Ensure a balanced diet rich in proteins and nutrients</Text>
+          </View>
+          <View style={styles.recommendationItem}>
+            <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
+            <Text style={styles.recommendationText}>Consider consulting with a pediatrician</Text>
+          </View>
         </View>
         
         <Button
@@ -101,12 +210,19 @@ const StuntingCalculatorScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('Home')}
           style={styles.saveButton}
         />
-        <TouchableOpacity onPress={() => setShowResults(false)}>
+        <TouchableOpacity 
+          style={styles.recalculateButton} 
+          onPress={() => setShowResults(false)}
+        >
           <Text style={styles.recalculateText}>Recalculate</Text>
         </TouchableOpacity>
       </View>
     );
   };
+
+  if (!fontsLoaded) {
+    return <View style={styles.loadingContainer}><Text>Loading fonts...</Text></View>;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -132,15 +248,18 @@ const StuntingCalculatorScreen = ({ navigation }) => {
               value={childName}
               onChangeText={setChildName}
               placeholder="Enter child's name"
+              placeholderTextColor="#BDBDBD"
             />
             
             <Text style={styles.label}>Age (months)</Text>
             <TextInput
               style={styles.input}
               value={age}
-              onChangeText={setAge}
+              onChangeText={handleAgeChange}
               placeholder="Enter age in months"
+              placeholderTextColor="#BDBDBD"
               keyboardType="numeric"
+              maxLength={3} // Reasonable limit for age in months
             />
             
             <Text style={styles.label}>Gender</Text>
@@ -161,6 +280,7 @@ const StuntingCalculatorScreen = ({ navigation }) => {
                 style={[
                   styles.genderButton,
                   gender === 'Female' && styles.selectedGender,
+                  { marginLeft: 10, marginRight: 0 }
                 ]}
                 onPress={() => setGender('Female')}
               >
@@ -172,27 +292,25 @@ const StuntingCalculatorScreen = ({ navigation }) => {
             </View>
             
             <Text style={styles.label}>Height (cm)</Text>
-            <TextInput
+            <NumericInput
               style={styles.input}
               value={height}
               onChangeText={setHeight}
               placeholder="Enter height in centimeters"
-              keyboardType="numeric"
             />
             
             <Text style={styles.label}>Weight (kg)</Text>
-            <TextInput
+            <NumericInput
               style={styles.input}
               value={weight}
               onChangeText={setWeight}
               placeholder="Enter weight in kilograms"
-              keyboardType="numeric"
             />
             
             <Button
               title="Calculate Risk"
               onPress={calculateRisk}
-              disabled={!isFormValid()}
+              disabled={!isFormValid}
               style={styles.calculateButton}
             />
           </View>
@@ -203,6 +321,12 @@ const StuntingCalculatorScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -215,6 +339,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   backButton: {
     padding: 5,
@@ -222,125 +352,234 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 24,
     color: '#333333',
+    fontFamily: 'PlusJakartaSans-Medium',
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
     color: '#333333',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   placeholder: {
     width: 30,
   },
   scrollView: {
     flex: 1,
+    backgroundColor: '#F9F9F9',
   },
   formContainer: {
     padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   formTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 20,
+    marginBottom: 24,
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   label: {
     fontSize: 16,
-    color: '#333333',
-    marginBottom: 5,
+    color: '#555555',
+    marginBottom: 8,
+    fontFamily: 'PlusJakartaSans-Medium',
   },
   input: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 22,
     fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Regular',
+    backgroundColor: '#FFFFFF',
   },
   genderContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 22,
   },
   genderButton: {
     flex: 1,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     marginRight: 10,
+    backgroundColor: '#FFFFFF',
   },
   selectedGender: {
     backgroundColor: '#20C997',
     borderColor: '#20C997',
   },
   genderText: {
-    color: '#333333',
+    color: '#555555',
     fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Medium',
   },
   selectedGenderText: {
     color: '#FFFFFF',
   },
   calculateButton: {
     marginTop: 10,
+    borderRadius: 10,
   },
   resultsContainer: {
     padding: 20,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   resultsTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 20,
+    marginBottom: 24,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    alignSelf: 'flex-start',
   },
-  riskIndicator: {
-    padding: 15,
-    borderRadius: 8,
+  circularProgressContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+    marginVertical: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  riskPercentageContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  riskPercentageText: {
+    fontSize: 38,
+    color: '#333333',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   riskText: {
-    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: 'bold',
+    marginTop: 5,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  resultSummaryCard: {
+    width: '100%',
+    backgroundColor: '#FAFAFA',
+    borderRadius: 10,
+    padding: 16,
+    marginVertical: 8,
+    borderLeftWidth: 4,
   },
   resultDescription: {
     fontSize: 16,
-    color: '#666666',
-    marginBottom: 20,
+    color: '#555555',
     lineHeight: 24,
+    fontFamily: 'PlusJakartaSans-Regular',
+  },
+  childInfoTitle: {
+    fontSize: 18,
+    color: '#333333',
+    marginBottom: 12,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  childInfoContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 10,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
+  },
+  childInfoItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    width: '100%',
+    marginVertical: 6,
+  },
+  childInfoLabel: {
+    fontSize: 16,
+    color: '#666666',
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  childInfoValue: {
+    fontSize: 16,
+    color: '#333333',
+    fontWeight: 'bold',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   recommendationsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
     color: '#333333',
-    marginBottom: 15,
+    marginTop: 8,
+    marginBottom: 12,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    alignSelf: 'flex-start',
+  },
+  recommendationsCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   recommendationItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 14,
   },
   bulletPoint: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#20C997',
-    marginRight: 10,
+    marginRight: 12,
+    marginTop: 8,
   },
   recommendationText: {
     fontSize: 16,
-    color: '#666666',
+    color: '#555555',
     flex: 1,
+    fontFamily: 'PlusJakartaSans-Regular',
+    lineHeight: 24,
   },
   saveButton: {
     marginTop: 30,
     marginBottom: 15,
+    width: '100%',
+    borderRadius: 10,
+  },
+  recalculateButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#20C997',
   },
   recalculateText: {
     color: '#20C997',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans-SemiBold',
     textAlign: 'center',
+    marginBottom: 2,
   },
 });
 

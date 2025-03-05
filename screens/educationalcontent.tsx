@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import BottomNavBar from '../components/BottomNavBar';
 
 const EducationalContentScreen = () => {
   const articles = [
@@ -100,7 +99,6 @@ const EducationalContentScreen = () => {
         </View>
       </ScrollView>
       
-      <BottomNavBar />
     </SafeAreaView>
   );
 };

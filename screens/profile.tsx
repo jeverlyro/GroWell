@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
-import BottomNavBar from '../components/BottomNavBar';
 
 const ProfileScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity>
-          <MaterialIcons name="settings" size={24} color="#333333" />
+        <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
+          <Ionicons name="settings-outline" size={20} color="#333333" />
         </TouchableOpacity>
       </View>
 
@@ -20,8 +20,8 @@ const ProfileScreen = ({ navigation }) => {
             source={require('../assets/snack.png')}
             style={styles.profileImage}
           />
-          <Text style={styles.profileName}>Sarah Johnson</Text>
-          <Text style={styles.profileEmail}>sarah.johnson@example.com</Text>
+          <Text style={styles.profileName}>GroWell</Text>
+          <Text style={styles.profileEmail}>growell.team@example.com</Text>
           <TouchableOpacity style={styles.editProfileButton}>
             <Text style={styles.editProfileText}>Edit Profile</Text>
           </TouchableOpacity>
@@ -36,7 +36,7 @@ const ProfileScreen = ({ navigation }) => {
               style={styles.childImage}
             />
             <View style={styles.childInfo}>
-              <Text style={styles.childName}>Emily Johnson</Text>
+              <Text style={styles.childName}>GroWell</Text>
               <Text style={styles.childAge}>3 years old</Text>
               <View style={styles.childStatsRow}>
                 <View style={styles.childStat}>
@@ -101,7 +101,6 @@ const ProfileScreen = ({ navigation }) => {
         </TouchableOpacity>
       </ScrollView>
       
-      <BottomNavBar />
     </SafeAreaView>
   );
 };
@@ -263,8 +262,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    marginVertical: 20,
+    paddingBottom: 30,
   },
   logoutText: {
     fontSize: 16,

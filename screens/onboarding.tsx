@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, Dimensions, Animated } from 'react-native';
 import { Button } from '../components/button';
 import { useFonts } from 'expo-font';
-import AppLoading from 'expo-app-loading';
 
 const { width } = Dimensions.get('window');
 
