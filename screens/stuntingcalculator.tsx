@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/button';
+import CircularProgress from 'react-native-circular-progress-indicator';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useFonts } from 'expo-font';
 import { analyzeStunting } from '../backend/services/stuntingService';
@@ -130,70 +131,61 @@ const StuntingCalculatorScreen = ({ navigation }) => {
     let iconName = 'check-circle';
     
     if (riskLevel === 'medium') {
-      resultColor = '#FFC107'; // Yellow/amber for medium risk
-      resultText = 'Moderate Risk';
-      resultDescription = 'Your child may be at risk for stunting. We recommend consultation with a healthcare provider.';
+      resultColor = '#FFC107'; // Yellow for medium risk
+      resultText = 'Medium Risk';
+      resultDescription = 'Your child may be showing early signs of stunting. Follow the recommendations below.';
       iconName = 'alert-circle';
     } else if (riskLevel === 'high') {
-      resultColor = '#FF5252'; // Red for high risk
+      resultColor = '#FF4D4F'; // Red for high risk
       resultText = 'High Risk';
-      resultDescription = 'Your child shows significant signs of stunting risk. Please consult with a healthcare provider as soon as possible.';
+      resultDescription = 'Your child shows signs of stunting that require attention. Please consult a healthcare provider.';
       iconName = 'alert-triangle';
     }
-    
-    // Calculate dimensions for circular progress
-    const size = 220;
-    const strokeWidth = 18;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const strokeDashoffset = circumference - (riskPercentage / 100) * circumference;
-    const center = size / 2;
-    
+  
     return (
       <View style={styles.resultsContainer}>
-        <Text style={styles.resultsTitle}>Results for {childName}</Text>
+        <Text style={styles.resultsTitle}>Analysis Results</Text>
         
-        {/* Circular Risk Indicator with enhanced visual */}
-        <View style={[styles.circularProgressContainer, { shadowColor: resultColor }]}>
-          <Svg width={size} height={size}>
-            {/* Background Circle with gradient */}
-            <Circle
-              cx={center}
-              cy={center}
-              r={radius}
-              stroke="#EAEAEA"
-              strokeWidth={strokeWidth}
-              fill="transparent"
-            />
-            {/* Progress Circle */}
-            <Circle
-              cx={center}
-              cy={center}
-              r={radius}
-              stroke={resultColor}
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              fill="transparent"
-              transform={`rotate(-90, ${center}, ${center})`}
-            />
-          </Svg>
+        {/* Risk percentage display */}
+        <View style={styles.circularProgressContainer}>
+          <CircularProgress 
+            value={riskPercentage} 
+            radius={80} 
+            duration={1000} 
+            progressValueColor={resultColor}
+            activeStrokeColor={resultColor}
+            inActiveStrokeColor='#EEEEEE'
+            inActiveStrokeOpacity={0.5}
+            inActiveStrokeWidth={15}
+            activeStrokeWidth={15}
+          />
           <View style={styles.riskPercentageContainer}>
-            <Text style={[styles.riskPercentageText, { color: resultColor }]}>{riskPercentage}%</Text>
+            <Text style={styles.riskPercentageText}>{riskPercentage}%</Text>
             <Text style={[styles.riskText, { color: resultColor }]}>{resultText}</Text>
           </View>
         </View>
         
+        {/* Result summary card */}
         <View style={[styles.resultSummaryCard, { borderLeftColor: resultColor }]}>
           <Text style={styles.resultDescription}>{resultDescription}</Text>
         </View>
         
+        {/* Child info section */}
+        <Text style={styles.childInfoTitle}>Child Information</Text>
         <View style={styles.childInfoContainer}>
-          <Text style={styles.childInfoTitle}>Child Information</Text>
+          <View style={styles.childInfoItem}>
+            <Text style={styles.childInfoLabel}>Name:</Text>
+            <Text style={styles.childInfoValue}>{childName}</Text>
+          </View>
+          <View style={styles.divider} />
           <View style={styles.childInfoItem}>
             <Text style={styles.childInfoLabel}>Age:</Text>
             <Text style={styles.childInfoValue}>{age} months</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.childInfoItem}>
+            <Text style={styles.childInfoLabel}>Gender:</Text>
+            <Text style={styles.childInfoValue}>{gender}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.childInfoItem}>
@@ -205,49 +197,54 @@ const StuntingCalculatorScreen = ({ navigation }) => {
             <Text style={styles.childInfoLabel}>Weight:</Text>
             <Text style={styles.childInfoValue}>{weight} kg</Text>
           </View>
+          {growthMetrics?.expected_height && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.childInfoItem}>
+                <Text style={styles.childInfoLabel}>Expected Height:</Text>
+                <Text style={styles.childInfoValue}>{growthMetrics.expected_height} cm</Text>
+              </View>
+            </>
+          )}
         </View>
-
-        <View style={styles.aiAnalysisContainer}>
-  <Text style={styles.aiAnalysisTitle}>AI Analysis</Text>
-  <Text style={styles.aiAnalysisText}>{analysisText}</Text>
-</View>
-
-<Text style={styles.recommendationsTitle}>AI Recommendations</Text>
-<View style={styles.recommendationsCard}>
-  {recommendations.map((recommendation, index) => (
-    <View key={index} style={styles.recommendationItem}>
-      <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
-      <Text style={styles.recommendationText}>{recommendation}</Text>
-    </View>
-  ))}
-</View>
         
-        <Text style={styles.recommendationsTitle}>Recommendations</Text>
-        <View style={styles.recommendationsCard}>
-          <View style={styles.recommendationItem}>
-            <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
-            <Text style={styles.recommendationText}>Track your child's growth regularly</Text>
+        {/* AI Analysis section */}
+        {analysisText && (
+          <View style={styles.aiAnalysisContainer}>
+            <Text style={styles.aiAnalysisTitle}>AI Analysis</Text>
+            <Text style={styles.aiAnalysisText}>{analysisText}</Text>
           </View>
-          <View style={styles.recommendationItem}>
-            <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
-            <Text style={styles.recommendationText}>Ensure a balanced diet rich in proteins and nutrients</Text>
-          </View>
-          <View style={styles.recommendationItem}>
-            <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
-            <Text style={styles.recommendationText}>Consider consulting with a pediatrician</Text>
-          </View>
-        </View>
+        )}
+        
+        {/* Recommendations section */}
+        {recommendations && recommendations.length > 0 && (
+          <>
+            <Text style={styles.recommendationsTitle}>Recommendations</Text>
+            <View style={styles.recommendationsCard}>
+              {recommendations.map((recommendation, index) => (
+                <View key={index} style={styles.recommendationItem}>
+                  <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
+                  <Text style={styles.recommendationText}>{recommendation}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
         
         <Button
           title="Save Results"
           onPress={() => navigation.navigate('Home')}
           style={styles.saveButton}
         />
+        
         <TouchableOpacity 
-          style={styles.recalculateButton} 
-          onPress={() => setShowResults(false)}
+          style={styles.recalculateButton}
+          onPress={() => {
+            setShowResults(false);
+            setRiskLevel(null);
+          }}
         >
-          <Text style={styles.recalculateText}>Recalculate</Text>
+          <Text style={styles.recalculateText}>Re-calculate</Text>
         </TouchableOpacity>
       </View>
     );
