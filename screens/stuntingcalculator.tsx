@@ -3,9 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/button';
 import CircularProgress from 'react-native-circular-progress-indicator';
-import Svg, { Circle, Path } from 'react-native-svg';
 import { useFonts } from 'expo-font';
-import { analyzeStunting } from '../backend/services/stuntingService';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Get screen dimensions for responsive design
@@ -28,7 +26,7 @@ const NumericInput = React.memo(({ value, onChangeText, placeholder, style }) =>
       placeholder={placeholder}
       placeholderTextColor="#BDBDBD"
       keyboardType="numeric"
-      maxLength={6} // Reasonable limit for height/weight values
+      maxLength={6}
     />
   );
 });
@@ -47,6 +45,7 @@ const StuntingCalculatorScreen = ({ navigation }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [stuntingStatus, setStuntingStatus] = useState('');
   const [growthMetrics, setGrowthMetrics] = useState({});
+  const [growthInsights, setGrowthInsights] = useState([]);
 
   // Load Plus Jakarta Sans font
   const [fontsLoaded] = useFonts({
@@ -71,48 +70,115 @@ const StuntingCalculatorScreen = ({ navigation }) => {
       const heightInCm = parseFloat(height);
       const weightInKg = parseFloat(weight);
       
-      // Call the API service
-      const analysisResult = await analyzeStunting({
-        childName,
-        age: ageInMonths,
-        gender,
-        height: heightInCm,
-        weight: weightInKg
-      });
+      // Local calculation instead of API call
+      // Calculate expected height based on WHO growth standards (simplified)
+      const expectedHeight = gender === 'Male' 
+        ? 45 + (ageInMonths * 0.7) // Simplified male growth estimate
+        : 44 + (ageInMonths * 0.7); // Simplified female growth estimate
       
-      // Update state based on API response
-      setRiskLevel(analysisResult.result.risk_level);
-      setRiskPercentage(analysisResult.result.risk_percentage);
-      setAnalysisText(analysisResult.result.analysis);
-      setRecommendations(analysisResult.result.recommendations);
-      setStuntingStatus(analysisResult.result.stunting_status);
-      setGrowthMetrics(analysisResult.result.growth_metrics);
+      // Calculate height-for-age Z-score (simplified)
+      const heightForAgeZ = (heightInCm - expectedHeight) / 5;
+      
+      // Calculate weight-for-age (simplified)
+      const expectedWeight = gender === 'Male'
+        ? 3.5 + (ageInMonths * 0.2) // Simplified male weight estimate
+        : 3.3 + (ageInMonths * 0.2); // Simplified female weight estimate
+      
+      const weightForAgeZ = (weightInKg - expectedWeight) / 1;
+      
+      // Determine risk level
+      let riskLevel, riskPercentage, stuntingStatus, analysisText;
+      
+      if (heightForAgeZ < -3) {
+        riskLevel = 'high';
+        riskPercentage = 85;
+        stuntingStatus = 'Severe stunting';
+        analysisText = `${childName} shows signs of severe stunting with a height significantly below the expected range for ${gender === 'Male' ? 'his' : 'her'} age. Immediate medical consultation is recommended.`;
+      } else if (heightForAgeZ < -2) {
+        riskLevel = 'medium';
+        riskPercentage = 60;
+        stuntingStatus = 'Moderate stunting';
+        analysisText = `${childName} shows signs of moderate stunting with height below the expected range for ${gender === 'Male' ? 'his' : 'her'} age. Regular monitoring and nutritional improvements are recommended.`;
+      } else {
+        riskLevel = 'low';
+        riskPercentage = 15;
+        stuntingStatus = 'Normal growth';
+        analysisText = `${childName}'s height is within the normal range for ${gender === 'Male' ? 'his' : 'her'} age according to simplified WHO standards.`;
+      }
+      
+      // Generate recommendations based on risk level
+      const recommendations = [];
+      if (riskLevel === 'high') {
+        recommendations.push(
+          'Consult with a pediatrician or nutritionist as soon as possible.',
+          'Ensure a diverse diet rich in protein, vitamins, and minerals.',
+          'Monitor growth regularly, ideally every month.',
+          'Consider supplementation as recommended by healthcare provider.'
+        );
+      } else if (riskLevel === 'medium') {
+        recommendations.push(
+          'Increase dietary diversity with more protein-rich foods.',
+          'Ensure adequate intake of vitamins A, D, and minerals like iron, zinc, and calcium.',
+          'Monitor growth monthly to track progress.',
+          'Practice good hygiene and sanitation to prevent infections.'
+        );
+      } else {
+        recommendations.push(
+          'Continue with a balanced diet appropriate for your child\'s age.',
+          'Maintain regular checkups with your healthcare provider.',
+          'Ensure adequate physical activity for age-appropriate development.',
+          'Continue good hygiene practices.'
+        );
+      }
+      
+      // Create simple growth metrics
+      const growthMetrics = {
+        expected_height: expectedHeight.toFixed(1),
+        height_for_age_z: heightForAgeZ.toFixed(2),
+        expected_weight: expectedWeight.toFixed(1),
+        weight_for_age_z: weightForAgeZ.toFixed(2)
+      };
+      
+      // Generate simple growth insights
+      const growthInsights = [
+        `Current height is ${Math.abs(heightForAgeZ).toFixed(1)} standard deviations ${heightForAgeZ < 0 ? 'below' : 'above'} the average for age and gender.`,
+        `Current weight is ${Math.abs(weightForAgeZ).toFixed(1)} standard deviations ${weightForAgeZ < 0 ? 'below' : 'above'} the average for age and gender.`,
+        `Expected height range for ${ageInMonths} month old ${gender.toLowerCase()} is approximately ${(expectedHeight - 7).toFixed(1)} to ${(expectedHeight + 7).toFixed(1)} cm.`
+      ];
+      
+      // Simple mock data for growth chart
+      const growthChartData = {
+        labels: ['Birth', '3m', '6m', '9m', '12m', '18m', '24m'],
+        datasets: {
+          median: [50, 61, 67, 72, 76, 82, 87],
+          patientData: Array(7).fill(0).map((_, i) => {
+            // Only fill in data points up to current age
+            if (i * 3 <= ageInMonths) {
+              const modifier = heightForAgeZ * 3;
+              return 50 + (i * 6) + modifier;
+            }
+            return null;
+          }).filter(val => val !== null)
+        }
+      };
+      
+      // Set all the state variables with locally calculated data
+      setRiskLevel(riskLevel);
+      setRiskPercentage(riskPercentage);
+      setAnalysisText(analysisText);
+      setRecommendations(recommendations);
+      setStuntingStatus(stuntingStatus);
+      setGrowthMetrics(growthMetrics);
+      setGrowthInsights(growthInsights);
       
       setShowResults(true);
     } catch (error) {
-      console.error('Failed to analyze stunting risk:', error);
+      console.error('Failed to calculate stunting risk:', error);
       Alert.alert(
-        'Analysis Failed',
-        'Unable to complete the stunting risk analysis. Please try again later.',
+        'Calculation Error',
+        'Unable to complete the calculation. Please check your input and try again.',
         [{ text: 'OK' }]
       );
-      
-      // Fallback calculation if the API fails
-      const expectedHeight = gender === 'Male' ? 45 + (parseInt(age) * 0.5) : 44 + (parseInt(age) * 0.5);
-      const heightForAgeZ = (parseFloat(height) - expectedHeight) / 5;
-      
-      if (heightForAgeZ < -3) {
-        setRiskLevel('high');
-        setRiskPercentage(85);
-      } else if (heightForAgeZ < -2) {
-        setRiskLevel('medium');
-        setRiskPercentage(50);
-      } else {
-        setRiskLevel('low');
-        setRiskPercentage(15);
-      }
-      
-      setShowResults(true);
     } finally {
       setIsLoading(false); // Hide loading indicator
     }
@@ -191,40 +257,97 @@ const StuntingCalculatorScreen = ({ navigation }) => {
         {/* Child info section with improved styling */}
         <Text style={styles.sectionTitle}>Child Information</Text>
         <View style={styles.childInfoContainer}>
-          <View style={styles.childInfoItem}>
-            <Text style={styles.childInfoLabel}>Name:</Text>
-            <Text style={styles.childInfoValue}>{childName}</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.childInfoItem}>
-            <Text style={styles.childInfoLabel}>Age:</Text>
-            <Text style={styles.childInfoValue}>{age} months</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.childInfoItem}>
-            <Text style={styles.childInfoLabel}>Gender:</Text>
-            <Text style={styles.childInfoValue}>{gender}</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.childInfoItem}>
-            <Text style={styles.childInfoLabel}>Height:</Text>
-            <Text style={styles.childInfoValue}>{height} cm</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.childInfoItem}>
-            <Text style={styles.childInfoLabel}>Weight:</Text>
-            <Text style={styles.childInfoValue}>{weight} kg</Text>
-          </View>
-          {growthMetrics?.expected_height && (
-            <>
-              <View style={styles.divider} />
-              <View style={styles.childInfoItem}>
-                <Text style={styles.childInfoLabel}>Expected Height:</Text>
-                <Text style={styles.childInfoValue}>{growthMetrics.expected_height} cm</Text>
+          {/* Child's basic information */}
+          <View style={styles.infoCard}>
+            <Text style={styles.infoSectionTitle}>Basic Information</Text>
+            
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Name</Text>
+                <Text style={styles.infoValue}>{childName}</Text>
               </View>
-            </>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Age</Text>
+                <Text style={styles.infoValue}>{age} months</Text>
+              </View>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Gender</Text>
+                <Text style={styles.infoValue}>{gender}</Text>
+              </View>
+            </View>
+          </View>
+          
+          {/* Measurements */}
+          <View style={styles.infoCard}>
+            <Text style={styles.infoSectionTitle}>Measurements</Text>
+            
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Height</Text>
+                <Text style={styles.infoValue}>{height} cm</Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Weight</Text>
+                <Text style={styles.infoValue}>{weight} kg</Text>
+              </View>
+            </View>
+            
+            {growthMetrics?.expected_height && (
+              <View style={styles.infoRow}>
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Expected Height</Text>
+                  <Text style={styles.infoValue}>{growthMetrics.expected_height} cm</Text>
+                </View>
+                {growthMetrics?.expected_weight && (
+                  <View style={styles.infoItem}>
+                    <Text style={styles.infoLabel}>Expected Weight</Text>
+                    <Text style={styles.infoValue}>{growthMetrics.expected_weight} kg</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+          
+          {/* Z-Scores (if available) */}
+          {(growthMetrics?.height_for_age_z || growthMetrics?.weight_for_age_z) && (
+            <View style={styles.infoCard}>
+              <Text style={styles.infoSectionTitle}>Growth Metrics</Text>
+              
+              <View style={styles.infoRow}>
+                {growthMetrics?.height_for_age_z && (
+                  <View style={styles.infoItem}>
+                    <Text style={styles.infoLabel}>Height-for-Age Z</Text>
+                    <Text style={styles.infoValue}>{growthMetrics.height_for_age_z}</Text>
+                  </View>
+                )}
+                {growthMetrics?.weight_for_age_z && (
+                  <View style={styles.infoItem}>
+                    <Text style={styles.infoLabel}>Weight-for-Age Z</Text>
+                    <Text style={styles.infoValue}>{growthMetrics.weight_for_age_z}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
           )}
         </View>
+        
+        {/* Growth insights section */}
+        {growthInsights && growthInsights.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Growth Insights</Text>
+            <View style={styles.insightsContainer}>
+              {growthInsights.map((insight, index) => (
+                <View key={index} style={styles.insightItem}>
+                  <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
+                  <Text style={styles.insightText}>{insight}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
         
         {/* AI Analysis section with improved styling */}
         {analysisText && (
@@ -236,7 +359,7 @@ const StuntingCalculatorScreen = ({ navigation }) => {
             </View>
           </>
         )}
-        
+
         {/* Recommendations section with improved styling */}
         {recommendations && recommendations.length > 0 && (
           <>
@@ -294,79 +417,129 @@ const StuntingCalculatorScreen = ({ navigation }) => {
       <ScrollView style={styles.scrollView}>
         {!showResults ? (
           <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>Enter your child's information</Text>
+            <Text style={styles.formTitle}>Growth Assessment</Text>
             
-            <Text style={styles.label}>Child's Name</Text>
-            <TextInput
-              style={styles.input}
-              value={childName}
-              onChangeText={setChildName}
-              placeholder="Enter child's name"
-              placeholderTextColor="#BDBDBD"
-            />
-            
-            <Text style={styles.label}>Age (months)</Text>
-            <TextInput
-              style={styles.input}
-              value={age}
-              onChangeText={handleAgeChange}
-              placeholder="Enter age in months"
-              placeholderTextColor="#BDBDBD"
-              keyboardType="numeric"
-              maxLength={3} // Reasonable limit for age in months
-            />
-            
-            <Text style={styles.label}>Gender</Text>
-            <View style={styles.genderContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.genderButton,
-                  gender === 'Male' && styles.selectedGender,
-                ]}
-                onPress={() => setGender('Male')}
-              >
-                <Text style={[
-                  styles.genderText,
-                  gender === 'Male' && styles.selectedGenderText,
-                ]}>Male</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.genderButton,
-                  gender === 'Female' && styles.selectedGender,
-                  { marginLeft: 10, marginRight: 0 }
-                ]}
-                onPress={() => setGender('Female')}
-              >
-                <Text style={[
-                  styles.genderText,
-                  gender === 'Female' && styles.selectedGenderText,
-                ]}>Female</Text>
-              </TouchableOpacity>
+            <View style={styles.formSection}>
+              <Text style={styles.sectionHeader}>Personal Details</Text>
+              
+              <Text style={styles.label}>Child's Name</Text>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  value={childName}
+                  onChangeText={setChildName}
+                  placeholder="Enter child's name"
+                  placeholderTextColor="#BDBDBD"
+                />
+              </View>
+              
+              <View style={styles.formRow}>
+                <View style={styles.formColumn}>
+                  <Text style={styles.label}>Age (months)</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      value={age}
+                      onChangeText={handleAgeChange}
+                      placeholder="Enter age"
+                      placeholderTextColor="#BDBDBD"
+                      keyboardType="numeric"
+                      maxLength={3}
+                    />
+                  </View>
+                </View>
+                
+                <View style={styles.formColumn}>
+                  <Text style={styles.label}>Gender</Text>
+                  <View style={styles.genderContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.genderButton,
+                        gender === 'Male' && styles.selectedGender,
+                      ]}
+                      onPress={() => setGender('Male')}
+                    >
+                      <Text style={[
+                        styles.genderText,
+                        gender === 'Male' && styles.selectedGenderText,
+                      ]}>Male</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.genderButton,
+                        gender === 'Female' && styles.selectedGender,
+                        { marginLeft: 10, marginRight: 0 }
+                      ]}
+                      onPress={() => setGender('Female')}
+                    >
+                      <Text style={[
+                        styles.genderText,
+                        gender === 'Female' && styles.selectedGenderText,
+                      ]}>Female</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
             </View>
             
-            <Text style={styles.label}>Height (cm)</Text>
-            <NumericInput
-              style={styles.input}
-              value={height}
-              onChangeText={setHeight}
-              placeholder="Enter height in centimeters"
-            />
+            <View style={styles.formSection}>
+              <Text style={styles.sectionHeader}>Measurements</Text>
+              
+              <View style={styles.formRow}>
+                <View style={styles.formColumn}>
+                  <Text style={styles.label}>Height (cm)</Text>
+                  <View style={styles.inputWrapper}>
+                    <NumericInput
+                      style={styles.input}
+                      value={height}
+                      onChangeText={setHeight}
+                      placeholder="Height"
+                    />
+                    <Text style={styles.unitText}>cm</Text>
+                  </View>
+                </View>
+                
+                <View style={styles.formColumn}>
+                  <Text style={styles.label}>Weight (kg)</Text>
+                  <View style={styles.inputWrapper}>
+                    <NumericInput
+                      style={styles.input}
+                      value={weight}
+                      onChangeText={setWeight}
+                      placeholder="Weight"
+                    />
+                    <Text style={styles.unitText}>kg</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
             
-            <Text style={styles.label}>Weight (kg)</Text>
-            <NumericInput
-              style={styles.input}
-              value={weight}
-              onChangeText={setWeight}
-              placeholder="Enter weight in kilograms"
-            />
+            <View style={styles.noteContainer}>
+              <Text style={styles.noteIcon}>ℹ️</Text>
+              <Text style={styles.noteText}>
+                Height and weight measurements should be recent for accurate results.
+              </Text>
+            </View>
             
             <Button
-              title="Calculate Risk"
+              title={isFormValid ? "Calculate Risk" : "Please Fill All Fields"}
               onPress={calculateRisk}
               disabled={!isFormValid}
-              style={styles.calculateButton}
+              style={[
+                styles.calculateButton,
+                !isFormValid && styles.disabledButton
+              ]}
             />
+            
+            <TouchableOpacity 
+              style={styles.helpButton}
+              onPress={() => Alert.alert(
+                "How to measure correctly",
+                "For height: Measure your child standing straight against a wall.\n\nFor weight: Use a digital scale on a flat surface for best accuracy."
+              )}
+            >
+              <Text style={styles.helpButtonText}>Need help with measurements?</Text>
+            </TouchableOpacity>
           </View>
         ) : renderResults()}
       </ScrollView>
@@ -700,7 +873,7 @@ const styles = StyleSheet.create({
   },
   recalculateText: {
     color: '#20C997',
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'PlusJakartaSans-SemiBold',
   },
   loadingOverlay: {
@@ -732,6 +905,159 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333333',
     fontFamily: 'PlusJakartaSans-Medium',
+  },
+  insightsContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  insightItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  insightText: {
+    fontSize: 16,
+    color: '#555555',
+    flex: 1,
+    fontFamily: 'PlusJakartaSans-Regular',
+    lineHeight: 24,
+  },
+  chartContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 300,
+  },
+  infoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  infoSectionTitle: {
+    fontSize: 16,
+    color: '#666666',
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  infoItem: {
+    flex: 1,
+    marginRight: 8,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: '#888888',
+    fontFamily: 'PlusJakartaSans-Regular',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 18,
+    color: '#333333',
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  formSection: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    color: '#333333',
+    marginBottom: 16,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  formRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  formColumn: {
+    flex: 1,
+    marginRight: 10,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  unitText: {
+    fontSize: 16,
+    color: '#555555',
+    marginLeft: 8,
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  noteContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF9E6',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  noteIcon: {
+    fontSize: 24,
+    color: '#FFC107',
+    marginRight: 12,
+  },
+  noteText: {
+    fontSize: 16,
+    color: '#555555',
+    fontFamily: 'PlusJakartaSans-Regular',
+    flex: 1,
+  },
+  helpButton: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  helpButtonText: {
+    fontSize: 14,
+    color: '#20C997',
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  disabledButton: {
+    backgroundColor: '#E0E0E0',
   },
 });
 
