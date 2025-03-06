@@ -148,7 +148,7 @@ const HomeScreen = ({ navigation }) => {
       
       // Update active index
       setActiveCarouselIndex(nextIndex);
-    }, 4000);  // Auto scroll every 2 seconds
+    }, 4000);  // Auto scroll every 4 seconds
     
     return () => clearInterval(timer);
   }, [activeCarouselIndex]);

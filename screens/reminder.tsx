@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { registerForPushNotificationsAsync, scheduleNotification, cancelNotification, getTriggerFromReminder } from './services/notificationService';
 
-const RemindersScreen = ({ navigation }) => {
+const RemindersScreen = ({ navigation, route }) => {
   const [reminders, setReminders] = useState([
     {
       id: '1',
@@ -11,7 +12,8 @@ const RemindersScreen = ({ navigation }) => {
       description: 'Record height and weight',
       time: '10:00 AM',
       day: 'Tomorrow',
-      isEnabled: true
+      isEnabled: true,
+      notificationId: null
     },
     {
       id: '2',
@@ -19,7 +21,8 @@ const RemindersScreen = ({ navigation }) => {
       description: 'Regular check-up with Dr. Kim',
       time: '2:30 PM',
       day: 'Wed, Mar 6',
-      isEnabled: true
+      isEnabled: true,
+      notificationId: null
     },
     {
       id: '3',
@@ -27,7 +30,8 @@ const RemindersScreen = ({ navigation }) => {
       description: 'Daily vitamin D dose',
       time: '8:00 AM',
       day: 'Daily',
-      isEnabled: false
+      isEnabled: false,
+      notificationId: null
     },
     {
       id: '4',
@@ -35,14 +39,123 @@ const RemindersScreen = ({ navigation }) => {
       description: 'Prepare weekly nutrition plan',
       time: '7:00 PM',
       day: 'Every Sunday',
-      isEnabled: true
+      isEnabled: true,
+      notificationId: null
     }
   ]);
+  
+  // Setup notifications when component mounts
+  useEffect(() => {
+    // Request notification permissions
+    registerForPushNotificationsAsync();
+    
+    // Schedule notifications for enabled reminders
+    reminders.forEach(async reminder => {
+      if (reminder.isEnabled) {
+        await handleNotification(reminder, true);
+      }
+    });
+    
+    // Set up listener for new reminders (from AddReminder screen)
+    if (route.params?.newReminder) {
+      const newReminder = route.params.newReminder;
+      
+      setReminders(currentReminders => {
+        // Generate a new ID (just using timestamp for simplicity)
+        const id = Date.now().toString();
+        const updatedReminder = { ...newReminder, id, isEnabled: true, notificationId: null };
+        
+        // Schedule notification for the new reminder
+        handleNotification(updatedReminder, true);
+        
+        return [...currentReminders, updatedReminder];
+      });
+      
+      // Clear the parameter to prevent duplicate additions
+      navigation.setParams({ newReminder: null });
+    }
+  }, [route.params?.newReminder]);
+  
+  // Handle scheduling or canceling notifications when reminder is toggled
+  const handleNotification = async (reminder, enabled) => {
+    // Cancel existing notification if there is one
+    if (reminder.notificationId) {
+      await cancelNotification(reminder.notificationId);
+    }
+    
+    if (enabled) {
+      try {
+        // Schedule new notification
+        const trigger = getTriggerFromReminder(reminder);
+        const notificationId = await scheduleNotification(
+          reminder.title,
+          reminder.description,
+          trigger
+        );
+        
+        // Update reminder with notification ID
+        setReminders(currentReminders => 
+          currentReminders.map(r => 
+            r.id === reminder.id ? { ...r, notificationId } : r
+          )
+        );
+        
+        return notificationId;
+      } catch (error) {
+        console.error("Failed to schedule notification:", error);
+        Alert.alert("Notification Error", "Could not schedule notification for this reminder.");
+      }
+    }
+    
+    return null;
+  };
 
-  const toggleSwitch = (id) => {
-    setReminders(reminders.map(reminder => 
-      reminder.id === id ? {...reminder, isEnabled: !reminder.isEnabled} : reminder
-    ));
+  const toggleSwitch = async (id) => {
+    setReminders(currentReminders => {
+      const updatedReminders = currentReminders.map(reminder => {
+        if (reminder.id === id) {
+          const updatedReminder = { ...reminder, isEnabled: !reminder.isEnabled };
+          // Schedule or cancel notification
+          handleNotification(updatedReminder, updatedReminder.isEnabled);
+          return updatedReminder;
+        }
+        return reminder;
+      });
+      return updatedReminders;
+    });
+  };
+
+  const deleteReminder = async (id) => {
+    // Find the reminder to get its notification ID
+    const reminderToDelete = reminders.find(r => r.id === id);
+    
+    // Cancel the notification if it exists
+    if (reminderToDelete && reminderToDelete.notificationId) {
+      await cancelNotification(reminderToDelete.notificationId);
+    }
+    
+    // Remove the reminder from state
+    setReminders(currentReminders => 
+      currentReminders.filter(reminder => reminder.id !== id)
+    );
+  };
+
+  const confirmDelete = (id) => {
+    Alert.alert(
+      "Delete Reminder",
+      "Are you sure you want to delete this reminder?",
+      [
+        { 
+          text: "Cancel", 
+          style: "cancel" 
+        },
+        { 
+          text: "Delete", 
+          onPress: () => deleteReminder(id),
+          style: "destructive"
+        }
+      ]
+    );
   };
 
   const renderReminderCard = (reminder) => (
@@ -65,13 +178,22 @@ const RemindersScreen = ({ navigation }) => {
         </View>
       </View>
       
-      <Switch
-        trackColor={{ false: "#E0E0E0", true: "#20C997" }}
-        thumbColor={"#FFFFFF"}
-        ios_backgroundColor="#E0E0E0"
-        onValueChange={() => toggleSwitch(reminder.id)}
-        value={reminder.isEnabled}
-      />
+      <View style={styles.reminderActions}>
+        <Switch
+          trackColor={{ false: "#E0E0E0", true: "#20C997" }}
+          thumbColor={"#FFFFFF"}
+          ios_backgroundColor="#E0E0E0"
+          onValueChange={() => toggleSwitch(reminder.id)}
+          value={reminder.isEnabled}
+          style={styles.reminderSwitch}
+        />
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={() => confirmDelete(reminder.id)}
+        >
+          <MaterialIcons name="delete-outline" size={22} color="#FF6B6B" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -79,38 +201,22 @@ const RemindersScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Reminders</Text>
-        <TouchableOpacity>
-          <MaterialIcons name="add" size={24} color="#333333" />
-        </TouchableOpacity>
       </View>
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.reminderCategories}>
-          <TouchableOpacity style={[styles.categoryButton, styles.activeCategoryButton]}>
-            <Text style={[styles.categoryText, styles.activeCategoryText]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryButton}>
-            <Text style={styles.categoryText}>Health</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryButton}>
-            <Text style={styles.categoryText}>Nutrition</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryButton}>
-            <Text style={styles.categoryText}>Appointments</Text>
-          </TouchableOpacity>
-        </View>
-        
         <View style={styles.remindersSection}>
           <Text style={styles.sectionTitle}>Upcoming Reminders</Text>
           {reminders.map(reminder => renderReminderCard(reminder))}
         </View>
         
-        <TouchableOpacity style={styles.addReminderButton}>
+        <TouchableOpacity 
+          style={styles.addReminderButton}
+          onPress={() => navigation.navigate('AddReminder')}
+        >
           <MaterialIcons name="add" size={24} color="#FFFFFF" />
           <Text style={styles.addReminderText}>Add New Reminder</Text>
         </TouchableOpacity>
       </ScrollView>
-      
     </SafeAreaView>
   );
 };
@@ -136,30 +242,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  reminderCategories: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 15,
-    gap: 10,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F5F5F5',
-    marginRight: 10,
-  },
-  activeCategoryButton: {
-    backgroundColor: '#20C997',
-  },
-  categoryText: {
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Medium',
-    color: '#666666',
-  },
-  activeCategoryText: {
-    color: '#FFFFFF',
   },
   remindersSection: {
     padding: 15,
@@ -235,7 +317,17 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-SemiBold',
     color: '#FFFFFF',
     marginLeft: 10,
-  }
+  },
+  reminderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reminderSwitch: {
+    marginRight: 10,
+  },
+  deleteButton: {
+    padding: 5,
+  },
 });
 
 export default RemindersScreen;

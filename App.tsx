@@ -5,8 +5,6 @@ import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-
 // Import screens
 import SplashScreen from './screens/splashscreen';
 import OnboardingScreen from './screens/onboarding';
@@ -20,12 +18,13 @@ import RemindersPage from './screens/reminder';
 // Import feature screens
 import StuntingCalculatorScreen from './screens/stuntingcalculator';
 import NutritionPlanScreen from './screens/nutritionplan';
+import AddReminderScreen from './screens/addReminder';
+import { registerForPushNotificationsAsync } from './screens/services/notificationService';
 
 // Import settings screen
 import SettingsScreen from './screens/settings/SettingsScreen';
 import AccountSettings from './screens/settings/AccountSettings';
 import LanguageSettings from './screens/settings/LanguageSettings';
-import AppearanceSettings from './screens/settings/AppearanceSettings';
 import NotificationSettings from './screens/settings/NotificationSettings';
 
 const Stack = createStackNavigator();
@@ -109,12 +108,12 @@ function AppContent() {
           <Stack.Screen name="StuntingCalculator" component={StuntingCalculatorScreen} />
           <Stack.Screen name="NutritionPlan" component={NutritionPlanScreen} />
           <Stack.Screen name="Reminders" component={RemindersPage} />
+          <Stack.Screen name="AddReminder" component={AddReminderScreen}/>
           
           <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
           <Stack.Screen name="AccountSettings" component={AccountSettings} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
           <Stack.Screen name="LanguageSettings" component={LanguageSettings} />
-          <Stack.Screen name="AppearanceSettings" component={AppearanceSettings} />
         </Stack.Navigator> 
       </NavigationContainer>
     </SafeAreaProvider>

@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/button';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useFonts } from 'expo-font';
+import { analyzeStunting } from '../backend/services/stuntingService';
 
 const NumericInput = React.memo(({ value, onChangeText, placeholder, style }) => {
   const handleChangeText = useCallback((text) => {
@@ -36,6 +37,11 @@ const StuntingCalculatorScreen = ({ navigation }) => {
   const [showResults, setShowResults] = useState(false);
   const [riskLevel, setRiskLevel] = useState(null);
   const [riskPercentage, setRiskPercentage] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [analysisText, setAnalysisText] = useState('');
+  const [recommendations, setRecommendations] = useState([]);
+  const [stuntingStatus, setStuntingStatus] = useState('');
+  const [growthMetrics, setGrowthMetrics] = useState({});
 
   // Load Plus Jakarta Sans font
   const [fontsLoaded] = useFonts({
@@ -52,48 +58,60 @@ const StuntingCalculatorScreen = ({ navigation }) => {
     }
   }, []);
 
-  const calculateRisk = useCallback(() => {
-    // This is a simplified version. In a real app, you would use
-    // WHO growth standards or other medical algorithms
-    const ageInMonths = parseInt(age);
-    const heightInCm = parseFloat(height);
-    const weightInKg = parseFloat(weight);
+  const calculateRisk = useCallback(async () => {
+    setIsLoading(true); // Show loading indicator
     
-    // Example calculation - this should be replaced with actual medical formulas
-    if (gender === 'Male') {
-      // Example threshold for boys (simplified)
-      const expectedHeight = 45 + (ageInMonths * 0.5);
-      const heightForAgeZ = (heightInCm - expectedHeight) / 5;
+    try {
+      const ageInMonths = parseInt(age);
+      const heightInCm = parseFloat(height);
+      const weightInKg = parseFloat(weight);
+      
+      // Call the API service
+      const analysisResult = await analyzeStunting({
+        childName,
+        age: ageInMonths,
+        gender,
+        height: heightInCm,
+        weight: weightInKg
+      });
+      
+      // Update state based on API response
+      setRiskLevel(analysisResult.result.risk_level);
+      setRiskPercentage(analysisResult.result.risk_percentage);
+      setAnalysisText(analysisResult.result.analysis);
+      setRecommendations(analysisResult.result.recommendations);
+      setStuntingStatus(analysisResult.result.stunting_status);
+      setGrowthMetrics(analysisResult.result.growth_metrics);
+      
+      setShowResults(true);
+    } catch (error) {
+      console.error('Failed to analyze stunting risk:', error);
+      Alert.alert(
+        'Analysis Failed',
+        'Unable to complete the stunting risk analysis. Please try again later.',
+        [{ text: 'OK' }]
+      );
+      
+      // Fallback calculation if the API fails
+      const expectedHeight = gender === 'Male' ? 45 + (parseInt(age) * 0.5) : 44 + (parseInt(age) * 0.5);
+      const heightForAgeZ = (parseFloat(height) - expectedHeight) / 5;
       
       if (heightForAgeZ < -3) {
         setRiskLevel('high');
-        setRiskPercentage(85); // 85% risk
+        setRiskPercentage(85);
       } else if (heightForAgeZ < -2) {
         setRiskLevel('medium');
-        setRiskPercentage(50); // 50% risk
+        setRiskPercentage(50);
       } else {
         setRiskLevel('low');
-        setRiskPercentage(15); // 15% risk
+        setRiskPercentage(15);
       }
-    } else {
-      // Example threshold for girls (simplified)
-      const expectedHeight = 44 + (ageInMonths * 0.5);
-      const heightForAgeZ = (heightInCm - expectedHeight) / 5;
       
-      if (heightForAgeZ < -3) {
-        setRiskLevel('high');
-        setRiskPercentage(85); // 85% risk
-      } else if (heightForAgeZ < -2) {
-        setRiskLevel('medium');
-        setRiskPercentage(50); // 50% risk
-      } else {
-        setRiskLevel('low');
-        setRiskPercentage(15); // 15% risk
-      }
+      setShowResults(true);
+    } finally {
+      setIsLoading(false); // Hide loading indicator
     }
-    
-    setShowResults(true);
-  }, [age, gender, height, weight]);
+  }, [age, gender, height, weight, childName]);
 
   const isFormValid = useMemo(() => {
     return (
@@ -188,6 +206,21 @@ const StuntingCalculatorScreen = ({ navigation }) => {
             <Text style={styles.childInfoValue}>{weight} kg</Text>
           </View>
         </View>
+
+        <View style={styles.aiAnalysisContainer}>
+  <Text style={styles.aiAnalysisTitle}>AI Analysis</Text>
+  <Text style={styles.aiAnalysisText}>{analysisText}</Text>
+</View>
+
+<Text style={styles.recommendationsTitle}>AI Recommendations</Text>
+<View style={styles.recommendationsCard}>
+  {recommendations.map((recommendation, index) => (
+    <View key={index} style={styles.recommendationItem}>
+      <View style={[styles.bulletPoint, { backgroundColor: resultColor }]} />
+      <Text style={styles.recommendationText}>{recommendation}</Text>
+    </View>
+  ))}
+</View>
         
         <Text style={styles.recommendationsTitle}>Recommendations</Text>
         <View style={styles.recommendationsCard}>
@@ -316,6 +349,12 @@ const StuntingCalculatorScreen = ({ navigation }) => {
           </View>
         ) : renderResults()}
       </ScrollView>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#20C997" />
+          <Text style={styles.loadingText}>Analyzing with AI...</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -581,6 +620,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 2,
   },
+aiAnalysisContainer: {
+  width: '100%',
+  backgroundColor: '#FFFFFF',
+  padding: 16,
+  borderRadius: 10,
+  marginVertical: 16,
+  borderWidth: 1,
+  borderColor: '#EEEEEE',
+},
+aiAnalysisTitle: {
+  fontSize: 18,
+  color: '#333333',
+  marginBottom: 12,
+  fontFamily: 'PlusJakartaSans-SemiBold',
+},
+aiAnalysisText: {
+  fontSize: 16,
+  color: '#555555',
+  lineHeight: 24,
+  fontFamily: 'PlusJakartaSans-Regular',
+},
+loadingOverlay: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 999,
+},
+loadingText: {
+  marginTop: 10,
+  fontSize: 16,
+  color: '#333333',
+  fontFamily: 'PlusJakartaSans-Medium',
+},
 });
 
 export default StuntingCalculatorScreen;
