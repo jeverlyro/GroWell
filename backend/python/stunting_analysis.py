@@ -2,6 +2,22 @@
 import sys
 import json
 import math
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Configure Gemini API with your API key
+try:
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel('gemini-2.0-flash')
+except Exception as e:
+    print(json.dumps({
+        "error": f"Failed to initialize Gemini API: {str(e)}"
+    }))
+    sys.exit(1)
 
 # Check if we have enough arguments
 if len(sys.argv) != 5:
@@ -81,14 +97,44 @@ else:
     risk_level = "low"
     risk_percentage = 15
 
-# This is where a real LLM would be used
-# Since integrating an actual LLM locally can be complex, we'll simulate LLM responses
-# based on the calculated values
+# Use Gemini API for analysis
+def gemini_analysis(age_months, gender, height_cm, weight_kg, height_for_age_z, bmi, stunting_status, expected_height):
+    """
+    Uses Google's Gemini API to generate analysis based on growth data.
+    """
+    try:
+        prompt = f"""
+        You are a pediatric nutrition expert analyzing child growth data. Provide a detailed analysis of this child's growth status:
+        
+        - Age: {age_months} months
+        - Gender: {gender}
+        - Height: {height_cm} cm
+        - Weight: {weight_kg} kg
+        - Height-for-age Z-score: {height_for_age_z:.2f}
+        - BMI: {bmi:.2f}
+        - Stunting Status: {stunting_status}
+        - Expected height for age/gender: {expected_height:.1f} cm
+        
+        Please provide:
+        1. A clear, concise analysis of the child's growth status in 3-4 sentences.
+        2. Mention the significance of the Z-score.
+        3. Compare their current height with expected height.
+        4. If age > 24 months, include a brief BMI assessment.
+        
+        Write in a professional but accessible style that parents can understand. Keep the response focused and under 150 words.
+        """
+        
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        # Fallback to simulated response in case of API failure
+        return simulate_llm_analysis(age_months, gender, height_cm, weight_kg, height_for_age_z, bmi, stunting_status, expected_height)
 
-def simulate_llm_analysis(age_months, gender, height_cm, weight_kg, height_for_age_z, bmi, stunting_status):
+# Fallback function if Gemini API call fails
+def simulate_llm_analysis(age_months, gender, height_cm, weight_kg, height_for_age_z, bmi, stunting_status, expected_height):
     """
     Simulates an LLM response based on growth data.
-    In a real implementation, this would call an API like OpenAI, Anthropic, or a local LLM.
+    Used as fallback if Gemini API call fails.
     """
     
     # Base analysis based on stunting status
@@ -138,8 +184,56 @@ def simulate_llm_analysis(age_months, gender, height_cm, weight_kg, height_for_a
             
     return analysis
 
-# Generate tailored recommendations based on status
+# Use Gemini API for recommendations
+def gemini_recommendations(stunting_status, age_months, bmi, gender):
+    """
+    Uses Google's Gemini API to generate personalized recommendations.
+    """
+    try:
+        prompt = f"""
+        You are a pediatric nutritionist providing recommendations for a child with the following metrics:
+        
+        - Age: {age_months} months
+        - Gender: {gender}
+        - BMI: {bmi:.2f}
+        - Stunting Status: {stunting_status}
+        
+        Provide 5 specific, actionable recommendations for the child's caregivers to address their growth status.
+        
+        If the child is under 24 months, include breastfeeding guidance if appropriate.
+        If the child has a BMI < 14, include recommendations for safely increasing caloric intake.
+        If the child has a BMI > 18, include balanced nutrition and physical activity recommendations.
+        
+        Format as a bulleted list of concise recommendations.
+        """
+        
+        response = model.generate_content(prompt)
+        
+        # Parse the bulleted list into an array of recommendations
+        recommendations_text = response.text.strip()
+        recommendations = []
+        
+        for line in recommendations_text.split('\n'):
+            # Remove bullet points and whitespace
+            clean_line = line.strip().lstrip('-•*').strip()
+            if clean_line:  # Skip empty lines
+                recommendations.append(clean_line)
+        
+        # Ensure we have at least a few recommendations
+        if len(recommendations) < 3:
+            return generate_recommendations(stunting_status, age_months, bmi)
+            
+        return recommendations
+    except Exception as e:
+        # Fallback to simulated recommendations in case of API failure
+        return generate_recommendations(stunting_status, age_months, bmi)
+
+# Fallback function for recommendations if Gemini API fails
 def generate_recommendations(stunting_status, age_months, bmi):
+    """
+    Generates recommendations based on growth data.
+    Used as fallback if Gemini API call fails.
+    """
     recommendations = []
     
     # Base recommendations by stunting status
@@ -182,13 +276,25 @@ def generate_recommendations(stunting_status, age_months, bmi):
     
     return recommendations
 
-# Generate analysis using our simulated LLM
-analysis_text = simulate_llm_analysis(
-    age_months, gender, height_cm, weight_kg, height_for_age_z, bmi, stunting_status
-)
+# Generate analysis using Gemini
+try:
+    analysis_text = gemini_analysis(
+        age_months, gender, height_cm, weight_kg, height_for_age_z, bmi, stunting_status, expected_height
+    )
+except Exception as e:
+    print(json.dumps({
+        "error": f"Failed to generate analysis: {str(e)}"
+    }))
+    sys.exit(1)
 
-# Generate recommendations
-recommendations = generate_recommendations(stunting_status, age_months, bmi)
+# Generate recommendations using Gemini
+try:
+    recommendations = gemini_recommendations(stunting_status, age_months, bmi, gender)
+except Exception as e:
+    print(json.dumps({
+        "error": f"Failed to generate recommendations: {str(e)}"
+    }))
+    sys.exit(1)
 
 # Prepare response
 response = {

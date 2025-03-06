@@ -1,11 +1,15 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/button';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useFonts } from 'expo-font';
 import { analyzeStunting } from '../backend/services/stuntingService';
+import { LinearGradient } from 'expo-linear-gradient';
+
+// Get screen dimensions for responsive design
+const { width } = Dimensions.get('window');
 
 const NumericInput = React.memo(({ value, onChangeText, placeholder, style }) => {
   const handleChangeText = useCallback((text) => {
@@ -141,6 +145,13 @@ const StuntingCalculatorScreen = ({ navigation }) => {
       resultDescription = 'Your child shows signs of stunting that require attention. Please consult a healthcare provider.';
       iconName = 'alert-triangle';
     }
+    
+    // Gradient colors for background based on risk level
+    const gradientColors = riskLevel === 'high' 
+      ? ['#FFEFEF', '#FFF5F5'] 
+      : riskLevel === 'medium' 
+        ? ['#FFF9E6', '#FFFBF2'] 
+        : ['#E6F8F3', '#F2FBFA'];
   
     return (
       <View style={styles.resultsContainer}>
@@ -150,28 +161,35 @@ const StuntingCalculatorScreen = ({ navigation }) => {
         <View style={styles.circularProgressContainer}>
           <CircularProgress 
             value={riskPercentage} 
-            radius={80} 
-            duration={1000} 
+            radius={90} 
+            duration={1500}
+            valueSuffix={'%'}
             progressValueColor={resultColor}
             activeStrokeColor={resultColor}
             inActiveStrokeColor='#EEEEEE'
             inActiveStrokeOpacity={0.5}
             inActiveStrokeWidth={15}
             activeStrokeWidth={15}
+            title={resultText}
+            titleColor={resultColor}
+            titleStyle={{ fontFamily: 'PlusJakartaSans-SemiBold' }}
           />
-          <View style={styles.riskPercentageContainer}>
-            <Text style={styles.riskPercentageText}>{riskPercentage}%</Text>
-            <Text style={[styles.riskText, { color: resultColor }]}>{resultText}</Text>
-          </View>
         </View>
         
-        {/* Result summary card */}
-        <View style={[styles.resultSummaryCard, { borderLeftColor: resultColor }]}>
+        {/* Result summary card with gradient background */}
+        <View style={styles.resultSummaryCard}>
+          <LinearGradient
+            colors={gradientColors}
+            style={styles.gradientBackground}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          />
+          <View style={[styles.resultIndicator, { backgroundColor: resultColor }]} />
           <Text style={styles.resultDescription}>{resultDescription}</Text>
         </View>
         
-        {/* Child info section */}
-        <Text style={styles.childInfoTitle}>Child Information</Text>
+        {/* Child info section with improved styling */}
+        <Text style={styles.sectionTitle}>Child Information</Text>
         <View style={styles.childInfoContainer}>
           <View style={styles.childInfoItem}>
             <Text style={styles.childInfoLabel}>Name:</Text>
@@ -208,18 +226,21 @@ const StuntingCalculatorScreen = ({ navigation }) => {
           )}
         </View>
         
-        {/* AI Analysis section */}
+        {/* AI Analysis section with improved styling */}
         {analysisText && (
-          <View style={styles.aiAnalysisContainer}>
-            <Text style={styles.aiAnalysisTitle}>AI Analysis</Text>
-            <Text style={styles.aiAnalysisText}>{analysisText}</Text>
-          </View>
+          <>
+            <Text style={styles.sectionTitle}>AI Analysis</Text>
+            <View style={styles.aiAnalysisContainer}>
+              <View style={[styles.aiIndicator, { backgroundColor: resultColor }]} />
+              <Text style={styles.aiAnalysisText}>{analysisText}</Text>
+            </View>
+          </>
         )}
         
-        {/* Recommendations section */}
+        {/* Recommendations section with improved styling */}
         {recommendations && recommendations.length > 0 && (
           <>
-            <Text style={styles.recommendationsTitle}>Recommendations</Text>
+            <Text style={styles.sectionTitle}>Recommendations</Text>
             <View style={styles.recommendationsCard}>
               {recommendations.map((recommendation, index) => (
                 <View key={index} style={styles.recommendationItem}>
@@ -231,21 +252,24 @@ const StuntingCalculatorScreen = ({ navigation }) => {
           </>
         )}
         
-        <Button
-          title="Save Results"
-          onPress={() => navigation.navigate('Home')}
-          style={styles.saveButton}
-        />
-        
-        <TouchableOpacity 
-          style={styles.recalculateButton}
-          onPress={() => {
-            setShowResults(false);
-            setRiskLevel(null);
-          }}
-        >
-          <Text style={styles.recalculateText}>Re-calculate</Text>
-        </TouchableOpacity>
+        {/* Action buttons with improved styling */}
+        <View style={styles.actionButtonsContainer}>
+          <Button
+            title="Save Results"
+            onPress={() => navigation.navigate('Home')}
+            style={[styles.saveButton, { backgroundColor: resultColor }]}
+          />
+          
+          <TouchableOpacity 
+            style={[styles.recalculateButton, { borderColor: resultColor }]}
+            onPress={() => {
+              setShowResults(false);
+              setRiskLevel(null);
+            }}
+          >
+            <Text style={[styles.recalculateText, { color: resultColor }]}>Re-calculate</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -348,8 +372,10 @@ const StuntingCalculatorScreen = ({ navigation }) => {
       </ScrollView>
       {isLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#20C997" />
-          <Text style={styles.loadingText}>Analyzing with AI...</Text>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#20C997" />
+            <Text style={styles.loadingText}>Analyzing with AI...</Text>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -403,22 +429,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9F9F9',
   },
   formContainer: {
-    padding: 20,
+    padding: 24,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 16,
     margin: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   formTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 24,
     color: '#333333',
-    marginBottom: 24,
+    marginBottom: 28,
     fontFamily: 'PlusJakartaSans-SemiBold',
+    textAlign: 'center',
   },
   label: {
     fontSize: 16,
@@ -429,26 +455,36 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 22,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
     fontSize: 16,
     fontFamily: 'PlusJakartaSans-Regular',
     backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   genderContainer: {
     flexDirection: 'row',
-    marginBottom: 22,
+    marginBottom: 24,
   },
   genderButton: {
     flex: 1,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 10,
-    padding: 15,
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
     marginRight: 10,
     backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   selectedGender: {
     backgroundColor: '#20C997',
@@ -463,23 +499,24 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   calculateButton: {
-    marginTop: 10,
-    borderRadius: 10,
+    marginTop: 16,
+    borderRadius: 12,
+    paddingVertical: 16,
   },
   resultsContainer: {
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 16,
     margin: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   resultsTitle: {
-    fontSize: 24,
+    fontSize: 26,
     color: '#333333',
     marginBottom: 24,
     fontFamily: 'PlusJakartaSans-SemiBold',
@@ -490,54 +527,68 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  riskPercentageContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  riskPercentageText: {
-    fontSize: 38,
-    color: '#333333',
-    fontFamily: 'PlusJakartaSans-Bold',
-  },
-  riskText: {
-    fontSize: 18,
-    marginTop: 5,
-    fontFamily: 'PlusJakartaSans-SemiBold',
+    shadowRadius: 12,
+    elevation: 8,
   },
   resultSummaryCard: {
     width: '100%',
-    backgroundColor: '#FAFAFA',
-    borderRadius: 10,
-    padding: 16,
-    marginVertical: 8,
-    borderLeftWidth: 4,
+    borderRadius: 16,
+    padding: 20,
+    marginVertical: 16,
+    overflow: 'hidden',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  resultIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 6,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
   },
   resultDescription: {
     fontSize: 16,
     color: '#555555',
     lineHeight: 24,
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: 'PlusJakartaSans-Medium',
+    paddingLeft: 10,
   },
-  childInfoTitle: {
-    fontSize: 18,
+  sectionTitle: {
+    fontSize: 20,
     color: '#333333',
-    marginBottom: 12,
+    marginVertical: 16,
     fontFamily: 'PlusJakartaSans-SemiBold',
+    alignSelf: 'flex-start',
+    width: '100%',
   },
   childInfoContainer: {
     width: '100%',
     backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 10,
-    marginVertical: 16,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   childInfoItem: {
     flexDirection: 'row',
@@ -548,7 +599,7 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#F0F0F0',
     width: '100%',
-    marginVertical: 6,
+    marginVertical: 8,
   },
   childInfoLabel: {
     fontSize: 16,
@@ -558,29 +609,58 @@ const styles = StyleSheet.create({
   childInfoValue: {
     fontSize: 16,
     color: '#333333',
-    fontWeight: 'bold',
     fontFamily: 'PlusJakartaSans-SemiBold',
   },
-  recommendationsTitle: {
-    fontSize: 20,
-    color: '#333333',
-    marginTop: 8,
-    marginBottom: 12,
-    fontFamily: 'PlusJakartaSans-SemiBold',
-    alignSelf: 'flex-start',
+  aiAnalysisContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  aiIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 6,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+  },
+  aiAnalysisText: {
+    fontSize: 16,
+    color: '#555555',
+    lineHeight: 24,
+    fontFamily: 'PlusJakartaSans-Regular',
+    paddingLeft: 10,
   },
   recommendationsCard: {
     width: '100%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 24,
   },
   recommendationItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   bulletPoint: {
     width: 8,
@@ -597,64 +677,62 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-Regular',
     lineHeight: 24,
   },
-  saveButton: {
-    marginTop: 30,
-    marginBottom: 15,
+  actionButtonsContainer: {
     width: '100%',
-    borderRadius: 10,
+    marginTop: 8,
+  },
+  saveButton: {
+    marginBottom: 16,
+    width: '100%',
+    borderRadius: 12,
+    paddingVertical: 16,
   },
   recalculateButton: {
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#20C997',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginBottom: 8,
   },
   recalculateText: {
     color: '#20C997',
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'PlusJakartaSans-SemiBold',
-    textAlign: 'center',
-    marginBottom: 2,
   },
-aiAnalysisContainer: {
-  width: '100%',
-  backgroundColor: '#FFFFFF',
-  padding: 16,
-  borderRadius: 10,
-  marginVertical: 16,
-  borderWidth: 1,
-  borderColor: '#EEEEEE',
-},
-aiAnalysisTitle: {
-  fontSize: 18,
-  color: '#333333',
-  marginBottom: 12,
-  fontFamily: 'PlusJakartaSans-SemiBold',
-},
-aiAnalysisText: {
-  fontSize: 16,
-  color: '#555555',
-  lineHeight: 24,
-  fontFamily: 'PlusJakartaSans-Regular',
-},
-loadingOverlay: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 999,
-},
-loadingText: {
-  marginTop: 10,
-  fontSize: 16,
-  color: '#333333',
-  fontFamily: 'PlusJakartaSans-Medium',
-},
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  loadingCard: {
+    backgroundColor: 'white',
+    padding: 24,
+    borderRadius: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+    width: width * 0.8,
+    maxWidth: 300,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#333333',
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
 });
 
 export default StuntingCalculatorScreen;

@@ -24,7 +24,7 @@ app.post('/api/analyze-stunting', async (req, res) => {
     console.log('Received data:', { childName, age, gender, height, weight });
     
     // Call Python script for LLM-based analysis
-    const pythonProcess = spawn('python', [
+    const pythonProcess = spawn('"C:\\Users\\ikade\\AppData\\Local\\Programs\\Python\\Python313\\python.exe"', [
       './python/stunting_analysis.py',
       age,
       gender,
