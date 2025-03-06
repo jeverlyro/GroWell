@@ -2,61 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { registerForPushNotificationsAsync, scheduleNotification, cancelNotification, getTriggerFromReminder } from './services/notificationService';
 
+const REMINDERS_STORAGE_KEY = '@GroWell:reminders';
+
 const RemindersScreen = ({ navigation, route }) => {
-  const [reminders, setReminders] = useState([
-    {
-      id: '1',
-      title: 'Growth Measurement',
-      description: 'Record height and weight',
-      time: '10:00 AM',
-      day: 'Tomorrow',
-      isEnabled: true,
-      notificationId: null
-    },
-    {
-      id: '2',
-      title: 'Pediatrician Appointment',
-      description: 'Regular check-up with Dr. Kim',
-      time: '2:30 PM',
-      day: 'Wed, Mar 6',
-      isEnabled: true,
-      notificationId: null
-    },
-    {
-      id: '3',
-      title: 'Vitamin Supplement',
-      description: 'Daily vitamin D dose',
-      time: '8:00 AM',
-      day: 'Daily',
-      isEnabled: false,
-      notificationId: null
-    },
-    {
-      id: '4',
-      title: 'Meal Planning',
-      description: 'Prepare weekly nutrition plan',
-      time: '7:00 PM',
-      day: 'Every Sunday',
-      isEnabled: true,
-      notificationId: null
+  const [reminders, setReminders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load reminders from AsyncStorage
+  const loadReminders = async () => {
+    try {
+      const storedReminders = await AsyncStorage.getItem(REMINDERS_STORAGE_KEY);
+      if (storedReminders) {
+        setReminders(JSON.parse(storedReminders));
+      }
+    } catch (error) {
+      console.error('Failed to load reminders:', error);
+      Alert.alert('Error', 'Could not load your reminders');
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
+
+  // Save reminders to AsyncStorage
+  const saveReminders = async (updatedReminders) => {
+    try {
+      await AsyncStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(updatedReminders));
+    } catch (error) {
+      console.error('Failed to save reminders:', error);
+      Alert.alert('Error', 'Could not save your reminders');
+    }
+  };
   
-  // Setup notifications when component mounts
+  // Setup notifications and load reminders when component mounts
   useEffect(() => {
     // Request notification permissions
     registerForPushNotificationsAsync();
     
-    // Schedule notifications for enabled reminders
-    reminders.forEach(async reminder => {
-      if (reminder.isEnabled) {
-        await handleNotification(reminder, true);
-      }
-    });
-    
-    // Set up listener for new reminders (from AddReminder screen)
+    // Load saved reminders
+    loadReminders();
+  }, []);
+  
+  // Handle existing reminders' notifications
+  useEffect(() => {
+    if (!isLoading) {
+      // Schedule notifications for enabled reminders
+      reminders.forEach(async reminder => {
+        if (reminder.isEnabled) {
+          await handleNotification(reminder, true);
+        }
+      });
+    }
+  }, [isLoading]);
+  
+  // Set up listener for new reminders (from AddReminder screen)
+  useEffect(() => {
     if (route.params?.newReminder) {
       const newReminder = route.params.newReminder;
       
@@ -68,7 +70,11 @@ const RemindersScreen = ({ navigation, route }) => {
         // Schedule notification for the new reminder
         handleNotification(updatedReminder, true);
         
-        return [...currentReminders, updatedReminder];
+        const updatedReminders = [...currentReminders, updatedReminder];
+        // Save to AsyncStorage
+        saveReminders(updatedReminders);
+        
+        return updatedReminders;
       });
       
       // Clear the parameter to prevent duplicate additions
@@ -94,11 +100,16 @@ const RemindersScreen = ({ navigation, route }) => {
         );
         
         // Update reminder with notification ID
-        setReminders(currentReminders => 
-          currentReminders.map(r => 
+        setReminders(currentReminders => {
+          const updatedReminders = currentReminders.map(r => 
             r.id === reminder.id ? { ...r, notificationId } : r
-          )
-        );
+          );
+          
+          // Save to AsyncStorage
+          saveReminders(updatedReminders);
+          
+          return updatedReminders;
+        });
         
         return notificationId;
       } catch (error) {
@@ -121,6 +132,10 @@ const RemindersScreen = ({ navigation, route }) => {
         }
         return reminder;
       });
+      
+      // Save to AsyncStorage
+      saveReminders(updatedReminders);
+      
       return updatedReminders;
     });
   };
@@ -135,9 +150,14 @@ const RemindersScreen = ({ navigation, route }) => {
     }
     
     // Remove the reminder from state
-    setReminders(currentReminders => 
-      currentReminders.filter(reminder => reminder.id !== id)
-    );
+    setReminders(currentReminders => {
+      const updatedReminders = currentReminders.filter(reminder => reminder.id !== id);
+      
+      // Save to AsyncStorage
+      saveReminders(updatedReminders);
+      
+      return updatedReminders;
+    });
   };
 
   const confirmDelete = (id) => {
@@ -197,6 +217,16 @@ const RemindersScreen = ({ navigation, route }) => {
     </View>
   );
 
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateContainer}>
+      <MaterialIcons name="notifications-off" size={64} color="#CCCCCC" />
+      <Text style={styles.emptyStateTitle}>No Reminders Yet</Text>
+      <Text style={styles.emptyStateDescription}>
+        You don't have any reminders set up yet. Add a new reminder to get started.
+      </Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -204,10 +234,16 @@ const RemindersScreen = ({ navigation, route }) => {
       </View>
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.remindersSection}>
-          <Text style={styles.sectionTitle}>Upcoming Reminders</Text>
-          {reminders.map(reminder => renderReminderCard(reminder))}
-        </View>
+        {reminders.length > 0 ? (
+          <View style={styles.remindersSection}>
+            <Text style={styles.sectionTitle}>Upcoming Reminders</Text>
+            {reminders.map(reminder => renderReminderCard(reminder))}
+          </View>
+        ) : (
+          <View style={styles.emptyStateWrapper}>
+            {renderEmptyState()}
+          </View>
+        )}
         
         <TouchableOpacity 
           style={styles.addReminderButton}
@@ -244,6 +280,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   remindersSection: {
+    padding: 15,
+  },
+  emptyStateWrapper: {
     padding: 15,
   },
   sectionTitle: {
@@ -327,6 +366,28 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     padding: 5,
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
+    marginBottom: 15,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontFamily: 'PlusJakartaSans-Bold',
+    color: '#333333',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateDescription: {
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans-Regular',
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

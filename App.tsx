@@ -5,6 +5,7 @@ import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
+
 // Import screens
 import SplashScreen from './screens/splashscreen';
 import OnboardingScreen from './screens/onboarding';
@@ -64,9 +65,11 @@ function MainTabs() {
         tabBarActiveTintColor: '#20C997',
         tabBarStyle: {
           height: 60,
-          paddingBottom: 5,
-          paddingTop: 5,
           backgroundColor: '#FFFFFF',
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontFamily: 'PlusJakartaSans-Bold',
         },
         tabBarPressColor: 'transparent',
       })}
