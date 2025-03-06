@@ -51,7 +51,7 @@ const SignInScreen = ({ navigation }) => {
 
           <View style={styles.headerContainer}>
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-              <MaterialIcons name="arrow-back" size={28} color="#1C1B1F" marginLeft = "-5" />
+              <MaterialIcons name="arrow-back" size={28} color="#1C1B1F" marginLeft="-5" />
             </TouchableOpacity>
           </View>
           <View style={styles.SItitle}>
@@ -90,14 +90,13 @@ const SignInScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-
             <View style={styles.options}>
               <View style={styles.checkboxContainer}>
                 <CheckBox 
                   label="Remember me"
                   checked={isChecked}
                   onChange={(checked) => setIsChecked(checked)}
-                  labelStyle={styles.checkboxText} // Warna teks remember me
+                  labelStyle={styles.checkboxText} 
                   size={10}
                 />
               </View>
@@ -106,10 +105,9 @@ const SignInScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Sign In Button */}
+            
             <Button title="Sign In" onPress={handleSignIn} disabled={!isValid} style={styles.button} />
 
-            {/* Sign Up Link */}
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don’t have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('GetStarted')}>
@@ -119,6 +117,12 @@ const SignInScreen = ({ navigation }) => {
           </View>
 
         </ScrollView>
+
+      
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Need help? <Text style={styles.contactText}>Contact Us</Text></Text>
+        </View>
+
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -160,7 +164,6 @@ const styles = StyleSheet.create({
     color: '#202020',
     marginTop: 20,
     marginVertical: 30,
-
   },
   SItitle:{},
   greenText: {
@@ -207,7 +210,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
-    
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -238,6 +240,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     fontFamily: 'PlusJakartaSans-Regular',
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 15,
+    backgroundColor: '#F5F5F5',
+  },
+  footerText: {
+    fontSize: 10,
+    color: '#000000',
+    fontFamily: 'PlusJakartaSans-Regular',
+  },
+  contactText: {
+    color: '#16C47F',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
 });
 
