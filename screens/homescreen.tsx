@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -7,12 +7,11 @@ import {
   TouchableOpacity, 
   Image, 
   Dimensions,
-  FlatList
+  FlatList,
+  Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import ThemedView from '../components/ThemedView';
-import { useTheme } from '../context/ThemeContext';
 
 // Image carousel data
 const carouselData = [
@@ -80,53 +79,86 @@ const CarouselItem = ({ item }) => {
   );
 };
 
-const CarouselPagination = ({ data, activeIndex }) => {
+const CarouselPagination = ({ data, activeIndex, scrollX }) => {
+  const inputRange = [-1, 0, 1];
+  const dotSize = 8;
+  
   return (
     <View style={styles.paginationContainer}>
-      {data.map((_, index) => (
-        <View
-          key={index}
-          style={[
-            styles.paginationDot,
-            index === activeIndex ? styles.paginationDotActive : styles.paginationDotInactive
-          ]}
-        />
-      ))}
+      {data.map((_, index) => {
+        // Create animation for each dot
+        const width = scrollX.interpolate({
+          inputRange: [
+            (index - 1) * (Dimensions.get('window').width - 40),
+            index * (Dimensions.get('window').width - 40),
+            (index + 1) * (Dimensions.get('window').width - 40)
+          ],
+          outputRange: [dotSize, dotSize * 1.5, dotSize],
+          extrapolate: 'clamp'
+        });
+        
+        const opacity = scrollX.interpolate({
+          inputRange: [
+            (index - 1) * (Dimensions.get('window').width - 40),
+            index * (Dimensions.get('window').width - 40),
+            (index + 1) * (Dimensions.get('window').width - 40)
+          ],
+          outputRange: [0.5, 1, 0.5],
+          extrapolate: 'clamp'
+        });
+        
+        return (
+          <Animated.View
+            key={index}
+            style={[
+              styles.paginationDot,
+              { 
+                width,
+                height: dotSize,
+                opacity,
+                backgroundColor: index === activeIndex ? '#20C997' : '#D1D1D1'
+              }
+            ]}
+          />
+        );
+      })}
     </View>
   );
 };
 
 const HomeScreen = ({ navigation }) => {
-  const { colors } = useTheme();
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const windowWidth = Dimensions.get('window').width;
-
-  // Dynamic styles using theme colors
-  const dynamicStyles = StyleSheet.create({
-    title: {
-      color: colors.text,
-      fontSize: 24,
-      fontFamily: 'PlusJakartaSans-Bold',
-    },
-    subtitle: {
-      color: colors.secondaryText,
-      fontSize: 16,
-      fontFamily: 'PlusJakartaSans-Medium',
-    },
-    card: {
-      backgroundColor: colors.cardBackground,
-      borderColor: colors.borderColor,
-      // other card styles
-    },
-    // Add other styles that should change with theme
-  });
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const flatListRef = useRef(null);
+  
+  // Auto-scrolling functionality
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Calculate next index
+      const nextIndex = (activeCarouselIndex + 1) % carouselData.length;
+      
+      // Scroll to next item
+      if (flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: nextIndex,
+          animated: true
+        });
+      }
+      
+      // Update active index
+      setActiveCarouselIndex(nextIndex);
+    }, 4000);  // Auto scroll every 2 seconds
+    
+    return () => clearInterval(timer);
+  }, [activeCarouselIndex]);
   
   return (
-    <ThemedView>
+    <View style={styles.container}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={dynamicStyles.title}>GroWell</Text>
+            <Text style={styles.headerTitle}>GroWell</Text>
             <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
               <Image 
                 source={require('../assets/profile-placeholder.png')} 
@@ -142,7 +174,8 @@ const HomeScreen = ({ navigation }) => {
           
           {/* Carousel/Image Slider */}
           <View style={styles.carouselContainer}>
-            <FlatList
+            <Animated.FlatList
+              ref={flatListRef}
               data={carouselData}
               renderItem={({ item }) => <CarouselItem item={item} />}
               keyExtractor={item => item.id}
@@ -158,10 +191,16 @@ const HomeScreen = ({ navigation }) => {
                 );
                 setActiveCarouselIndex(slideIndex);
               }}
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                { useNativeDriver: false }
+              )}
+              scrollEventThrottle={16}
             />
             <CarouselPagination 
               data={carouselData} 
-              activeIndex={activeCarouselIndex} 
+              activeIndex={activeCarouselIndex}
+              scrollX={scrollX} 
             />
           </View>
           
@@ -212,17 +251,13 @@ const HomeScreen = ({ navigation }) => {
               </View>
             </View>
           </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>GroWell - Nurturing Healthy Growth</Text>
-          </View>
         </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 };
 
-// Static styles that don't need to change with theme
+// Static styles with former dynamic styles incorporated
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -238,7 +273,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F0F0F0',
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: 'PlusJakartaSans-Bold',
     color: '#20C997',
   },
@@ -313,16 +348,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   paginationDot: {
-    width: 8,
-    height: 8,
     borderRadius: 4,
     marginHorizontal: 4,
-  },
-  paginationDotActive: {
-    backgroundColor: '#20C997',
-  },
-  paginationDotInactive: {
-    backgroundColor: '#D1D1D1',
   },
   
   featuresContainer: {
@@ -343,6 +370,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 15,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E0E0E0',
   },
   cardIcon: {
     width: 50,
@@ -422,16 +451,15 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-Regular',
     color: '#555555',
   },
-  
-  // Footer
-  footer: {
-    padding: 20,
-    alignItems: 'center',
+  title: {
+    color: '#333333',
+    fontSize: 24,
+    fontFamily: 'PlusJakartaSans-Bold',
   },
-  footerText: {
-    fontSize: 12,
-    color: '#999999',
-    fontFamily: 'PlusJakartaSans-Regular',
+  subtitle: {
+    color: '#666666',
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Medium',
   }
 });
 

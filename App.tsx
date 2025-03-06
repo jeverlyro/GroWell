@@ -6,7 +6,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 // Import screens
 import SplashScreen from './screens/splashscreen';
@@ -29,16 +28,10 @@ import LanguageSettings from './screens/settings/LanguageSettings';
 import AppearanceSettings from './screens/settings/AppearanceSettings';
 import NotificationSettings from './screens/settings/NotificationSettings';
 
-
-// Import theme settings
-import { withTheming } from './components/withTheming';
-
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
-  const { colors, isDarkMode } = useTheme();
-  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -74,30 +67,28 @@ function MainTabs() {
           height: 60,
           paddingBottom: 5,
           paddingTop: 5,
-          backgroundColor: colors.background,
+          backgroundColor: '#FFFFFF',
         },
         tabBarPressColor: 'transparent',
       })}
     >
-      <Tab.Screen name="Home" component={withTheming(HomeScreen)} />
-      <Tab.Screen name="Learn" component={withTheming(EducationalContentScreen)} />
-      <Tab.Screen name="Community" component={withTheming(CommunityScreen)} />
-      <Tab.Screen name="Reminder" component={withTheming(RemindersPage)} />
-      <Tab.Screen name="Profile" component={withTheming(ProfileScreen)} />
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Learn" component={EducationalContentScreen} />
+      <Tab.Screen name="Community" component={CommunityScreen} />
+      <Tab.Screen name="Reminder" component={RemindersPage} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
-// Main App component that needs ThemeProvider
 function AppContent() {
   const navigationRef = useRef(null);
-  const { colors, isDarkMode } = useTheme();
 
   return (
     <SafeAreaProvider>
       <StatusBar 
-        barStyle={isDarkMode ? "light-content" : "dark-content"} 
-        backgroundColor={colors.background} 
+        barStyle="dark-content" 
+        backgroundColor="#FFFFFF" 
       />
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator 
@@ -130,11 +121,6 @@ function AppContent() {
   );
 }
 
-// Root component that provides the theme
 export default function App() {
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  );
+  return <AppContent />;
 }
