@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   innerContainer: {
-    padding: 30,
+    padding: 28,
     
   },
   backButton: {
@@ -110,20 +110,25 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-Bold',
     color: '#202020',
     marginBottom: -20,
+    marginLeft: -5,
+
     
   },
   greenText: {
     color: '#16C47F',
     fontFamily: 'PlusJakartaSans-Bold',
     fontSize: 56,
+    marginLeft: -5,
   
 
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: 'PlusJakartaSans-Medium',
     color: '#202020',
-    marginVertical: 10,
+    marginVertical: 15,
+    marginBottom: 50,
+
   
   },
   label: {
