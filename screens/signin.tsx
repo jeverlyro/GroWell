@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { 
   View, Text, StyleSheet, TextInput, TouchableOpacity, 
-  KeyboardAvoidingView, Platform, ScrollView 
+  KeyboardAvoidingView, Platform, ScrollView
 } from 'react-native';
-import CheckBox from 'react-native-checkbox';
+import { CheckBox } from 'react-native-elements';
 import { Button } from '../components/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -51,13 +51,13 @@ const SignInScreen = ({ navigation }) => {
 
           <View style={styles.headerContainer}>
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-              <MaterialIcons name="arrow-back" size={28} color="#1C1B1F" marginLeft="-5" />
+              <MaterialIcons name="arrow-back" size={19} color="#1C1B1F" />
             </TouchableOpacity>
           </View>
           <View style={styles.SItitle}>
             <Text style={styles.title}>Sign <Text style={styles.greenText}>In</Text></Text>
           </View>
-          <Text style={styles.subtitle}>Welcome back! Let’s sign in to your account.</Text>
+          <Text style={styles.subtitle}>Welcome back! Let's sign in to your account.</Text>
 
       
           <View style={styles.formContainer}>
@@ -93,12 +93,13 @@ const SignInScreen = ({ navigation }) => {
             <View style={styles.options}>
               <View style={styles.checkboxContainer}>
                 <CheckBox 
-                  label="Remember me"
                   checked={isChecked}
-                  onChange={(checked) => setIsChecked(checked)}
-                  labelStyle={styles.checkboxText} 
-                  size={10}
+                  onPress={() => setIsChecked(!isChecked)}
+                  containerStyle={styles.checkboxWrapper}
+                  checkedColor='#16C47F'
+                  size={18}
                 />
+              <Text style={styles.rememberMeText}>Remember me</Text>
               </View>
               <TouchableOpacity onPress={() => navigation.navigate('EmailConfirmation')}>
                 <Text style={styles.optionText}>Forgot password?</Text>
@@ -109,20 +110,13 @@ const SignInScreen = ({ navigation }) => {
             <Button title="Sign In" onPress={handleSignIn} disabled={!isValid} style={styles.button} />
 
             <View style={styles.signupContainer}>
-              <Text style={styles.signupText}>Don’t have an account? </Text>
+              <Text style={styles.signupText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('GetStarted')}>
                 <Text style={[styles.signupText, styles.greenText1]}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </View>
-
         </ScrollView>
-
-      
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Need help? <Text style={styles.contactText}>Contact Us</Text></Text>
-        </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -150,7 +144,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButton: {
-    paddingRight: 15, 
+    padding: 10,
+    alignSelf: 'flex-start',
   },
   title: {
     fontSize: 56,
@@ -214,16 +209,21 @@ const styles = StyleSheet.create({
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16
   },
-  checkboxText: {
-    fontSize: 10,
+  checkboxWrapper: {
+    padding: 0,
+    margin: 0,
+    marginLeft: 0,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+  },
+  rememberMeText: {
+    fontSize: 12,
     color: '#202020', 
     fontFamily: 'PlusJakartaSans-Regular',
   },
   optionText: {
-    marginTop: 5,
-    fontSize: 8,
+    fontSize: 12,
     color: '#202020',
     fontFamily: 'PlusJakartaSans-Regular',
   },
@@ -239,16 +239,6 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'PlusJakartaSans-Regular',
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 15,
-    backgroundColor: '#F5F5F5',
-  },
-  footerText: {
-    fontSize: 10,
-    color: '#000000',
     fontFamily: 'PlusJakartaSans-Regular',
   },
   contactText: {
