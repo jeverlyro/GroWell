@@ -24,7 +24,7 @@ const GetStartedScreen = ({ navigation }) => {
 
   const handleSignUp = () => {
     if (isValid) {
-      navigation.navigate('Home');
+      navigation.navigate('EmailConfirmation');
     }
   };
 

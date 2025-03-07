@@ -59,7 +59,7 @@ const SignInScreen = ({ navigation }) => {
           </View>
           <Text style={styles.subtitle}>Welcome back! Let’s sign in to your account.</Text>
 
-          {/* Form Input */}
+      
           <View style={styles.formContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -100,7 +100,7 @@ const SignInScreen = ({ navigation }) => {
                   size={10}
                 />
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('EmailConfirmation')}>
                 <Text style={styles.optionText}>Forgot password?</Text>
               </TouchableOpacity>
             </View>

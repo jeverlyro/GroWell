@@ -16,7 +16,7 @@ import ProfileScreen from './screens/profile';
 import EducationalContentScreen from './screens/educationalcontent';
 import CommunityScreen from './screens/community';
 import RemindersPage from './screens/reminder';
-//import CreatePassword from './screens/createpass';
+import CreatePassword from './screens/createpassword';
 import SignIn from './screens/signin';
 // Import feature screens
 import StuntingCalculatorScreen from './screens/stuntingcalculator';
@@ -27,6 +27,7 @@ import SettingsScreen from './screens/settings/SettingsScreen';
 import AccountSettings from './screens/settings/AccountSettings';
 import LanguageSettings from './screens/settings/LanguageSettings';
 import NotificationSettings from './screens/settings/NotificationSettings';
+import EmailConfirmationScreen from './screens/emailverif';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -102,6 +103,7 @@ function AppContent() {
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="GetStarted" component={GetStartedScreen} />
           <Stack.Screen name="SignIn" component={SignIn}/>
+          <Stack.Screen name="CreatePassword" component={CreatePassword}/>
           <Stack.Screen name="Home" component={MainTabs} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="EducationalContent" component={EducationalContentScreen} />
@@ -114,6 +116,7 @@ function AppContent() {
           <Stack.Screen name="AccountSettings" component={AccountSettings} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
           <Stack.Screen name="LanguageSettings" component={LanguageSettings} />
+          <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen}/>
         
         </Stack.Navigator> 
       </NavigationContainer>
