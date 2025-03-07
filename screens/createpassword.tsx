@@ -25,7 +25,7 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
 
   const handleCreatePassword = () => {
     if (isValid) {
-      navigation.navigate('Home');
+      navigation.navigate('SignIn');
     }
   };
 
@@ -47,7 +47,8 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <MaterialIcons name="arrow-back" size={28} color="#1C1B1F" />
           </TouchableOpacity>
-          <Text style={styles.title}>Create <Text style={styles.greenText}>Password</Text></Text>
+          <Text style={styles.title}>Create</Text>
+          <Text style={styles.greenText}>Password</Text>
           <Text style={styles.subtitle}>Your email is verified, now let's make a password for your account safety.</Text>
 
           <Text style={styles.label}>Password</Text>
@@ -58,6 +59,7 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
             placeholder="Enter your password"
             placeholderTextColor="#B5B5B5"
             secureTextEntry
+            
           />
 
           <Text style={styles.label}>Retype Password</Text>
@@ -71,14 +73,19 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
           />
 
           <View style={styles.validationContainer}>
-            <Text style={[styles.validationText, password.length >= 6 ? styles.valid : styles.invalid]}>✓ At least 6 characters</Text>
+            <Text style={[styles.validationText, password.length >= 8 ? styles.valid : styles.invalid]}>✓ At least 8 characters</Text>
             <Text style={[styles.validationText, /\d/.test(password) ? styles.valid : styles.invalid]}>✓ Must contain at least 1 number</Text>
           </View>
 
           <Button title="Create & Sign In" onPress={handleCreatePassword} disabled={!isValid} style={styles.button} />
         </View>
+        
       </KeyboardAvoidingView>
+      <View style={styles.footer}>
+            <Text style={styles.footerText}>Need help? <Text style={styles.contactText}>Contact Us</Text></Text>
+        </View>
     </SafeAreaView>
+    
   );
 };
 
@@ -91,24 +98,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   innerContainer: {
-    padding: 20,
+    padding: 30,
+    
   },
   backButton: {
-    marginBottom: 20,
+    marginTop:50,
+    marginBottom:20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 56,
     fontFamily: 'PlusJakartaSans-Bold',
-    color: '#333333',
+    color: '#202020',
+    marginBottom: -20,
+    
   },
   greenText: {
     color: '#16C47F',
+    fontFamily: 'PlusJakartaSans-Bold',
+    fontSize: 56,
+  
+
   },
   subtitle: {
     fontSize: 14,
     fontFamily: 'PlusJakartaSans-Regular',
     color: '#202020',
     marginVertical: 10,
+  
   },
   label: {
     fontSize: 14,
@@ -139,6 +155,20 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 20,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 15,
+    backgroundColor: '#F5F5F5',
+  },
+  footerText: {
+    fontSize: 10,
+    color: '#000000',
+    fontFamily: 'PlusJakartaSans-Regular',
+  },
+  contactText: {
+    color: '#16C47F',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
 });
 
