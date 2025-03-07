@@ -24,7 +24,7 @@ const GetStartedScreen = ({ navigation }) => {
 
   const handleSignUp = () => {
     if (isValid) {
-      navigation.navigate('Home');
+      navigation.navigate('EmailConfirmation');
     }
   };
 
@@ -95,7 +95,7 @@ const GetStartedScreen = ({ navigation }) => {
 
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
                 <Text style={[styles.loginText, styles.greenText]}>Sign In</Text>
               </TouchableOpacity>
             </View>
