@@ -61,26 +61,43 @@ const RemindersScreen = ({ navigation, route }) => {
   useEffect(() => {
     if (route.params?.newReminder) {
       const newReminder = route.params.newReminder;
+      console.log('Received new reminder:', newReminder);
       
+      // First save the reminder to state and AsyncStorage
       setReminders(currentReminders => {
-        // Generate a new ID (just using timestamp for simplicity)
-        const id = Date.now().toString();
-        const updatedReminder = { ...newReminder, id, isEnabled: true, notificationId: null };
+        // Check if the reminder already exists to prevent duplicates
+        const exists = currentReminders.some(r => r.id === newReminder.id);
+        if (exists) return currentReminders;
         
-        // Schedule notification for the new reminder
-        handleNotification(updatedReminder, true);
+        // Add notificationId field if it doesn't exist
+        const updatedReminder = { 
+          ...newReminder, 
+          notificationId: newReminder.notificationId || null 
+        };
         
+        // Create the updated reminders array
         const updatedReminders = [...currentReminders, updatedReminder];
-        // Save to AsyncStorage
+        
+        // Save to AsyncStorage immediately
         saveReminders(updatedReminders);
+        
+        // Schedule notification for the new reminder in the next tick
+        setTimeout(() => {
+          handleNotification(updatedReminder, true);
+        }, 0);
         
         return updatedReminders;
       });
       
-      // Clear the parameter to prevent duplicate additions
-      navigation.setParams({ newReminder: null });
+      // Clear the parameter, but with a longer delay
+      // And only AFTER we've saved the reminder
+      setTimeout(() => {
+        if (route.params?.newReminder) {
+          navigation.setParams({ newReminder: undefined });
+        }
+      }, 1000); // Longer delay to ensure state updates complete
     }
-  }, [route.params?.newReminder]);
+  }, [route.params?.newReminder]); // Only depend on the reminder itself
   
   // Handle scheduling or canceling notifications when reminder is toggled
   const handleNotification = async (reminder, enabled) => {

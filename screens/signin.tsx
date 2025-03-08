@@ -29,7 +29,7 @@ const SignInScreen = ({ navigation }) => {
 
   const handleSignIn = () => {
     if (isValid) {
-      navigation.navigate('Home');
+      navigation.navigate('MainApp');
     }
   };
 
@@ -211,6 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxWrapper: {
+    marginTop: 3,
     padding: 0,
     margin: 0,
     marginLeft: 0,

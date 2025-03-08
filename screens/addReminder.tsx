@@ -14,10 +14,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-// Remove the problematic import
-// import DateTimePicker from '@react-native-community/datetimepicker';
+import { Calendar } from 'react-native-calendars';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FREQUENCY_OPTIONS = ['Once', 'Daily', 'Weekly'];
+const REMINDERS_STORAGE_KEY = '@GroWell:reminders';
 
 const AddReminderScreen = ({ navigation }) => {
   const [title, setTitle] = useState('');
@@ -28,6 +29,11 @@ const AddReminderScreen = ({ navigation }) => {
   const [time, setTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  
+  // Temporary selections for time picker
+  const [tempHour, setTempHour] = useState(null);
+  const [tempMinute, setTempMinute] = useState(null);
+  const [tempPeriod, setTempPeriod] = useState(null);
   
   // Frequency
   const [frequency, setFrequency] = useState('Once');
@@ -42,6 +48,11 @@ const AddReminderScreen = ({ navigation }) => {
     });
   };
   
+  // Format date for calendar
+  const formatCalendarDate = (date) => {
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
+  
   // Format time for display
   const formatTime = (time) => {
     return time.toLocaleTimeString('en-US', { 
@@ -51,52 +62,61 @@ const AddReminderScreen = ({ navigation }) => {
     });
   };
   
-  // Create simple time picker
-  const createTimeOptions = () => {
-    const options = [];
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const timeDate = new Date();
-        timeDate.setHours(hour, minute, 0);
-        options.push({
-          label: formatTime(timeDate),
-          value: timeDate
-        });
-      }
-    }
-    return options;
-  };
-
-  // Create simple date options for next 30 days
-  const createDateOptions = () => {
-    const options = [];
-    const today = new Date();
-    for (let i = 0; i < 30; i++) {
-      const date = new Date();
-      date.setDate(today.getDate() + i);
-      options.push({
-        label: formatDate(date),
-        value: date
-      });
-    }
-    return options;
+  // Handle date selection from calendar
+  const handleDateSelect = (day) => {
+    const selectedDate = new Date(day.dateString);
+    setDate(selectedDate);
+    // No autoclose, user must press confirm
   };
   
-  // Time picker options
-  const timeOptions = createTimeOptions();
-  // Date picker options
-  const dateOptions = createDateOptions();
-
-  // Handle time selection
-  const handleTimeSelect = (selectedTime) => {
-    setTime(selectedTime);
-    setShowTimePicker(false);
+  // Generate hours and minutes for time picker
+  const generateHours = () => {
+    const hours = [];
+    for (let i = 1; i <= 12; i++) {
+      hours.push(i);
+    }
+    return hours;
   };
 
-  // Handle date selection
-  const handleDateSelect = (selectedDate) => {
-    setDate(selectedDate);
-    setShowDatePicker(false);
+  const generateMinutes = () => {
+    const minutes = [];
+    for (let i = 0; i < 60; i += 5) {
+      minutes.push(i.toString().padStart(2, '0'));
+    }
+    return minutes;
+  };
+
+  // Initialize temp time values when opening time picker
+  const openTimePicker = () => {
+    const currentTimeDetails = getCurrentTimeDetails();
+    setTempHour(currentTimeDetails.hour);
+    setTempMinute(currentTimeDetails.minute);
+    setTempPeriod(currentTimeDetails.period);
+    setShowTimePicker(true);
+  };
+  
+  // Handle time selection for temporary values
+  const handleTempTimeSelect = (hour, minute, period) => {
+    setTempHour(hour);
+    setTempMinute(minute);
+    setTempPeriod(period);
+  };
+  
+  // Confirm time selection
+  const confirmTimeSelection = () => {
+    if (tempHour !== null && tempMinute !== null && tempPeriod !== null) {
+      const newTime = new Date();
+      const adjustedHour = tempPeriod === 'PM' && tempHour !== 12 
+        ? tempHour + 12 
+        : (tempPeriod === 'AM' && tempHour === 12 ? 0 : tempHour);
+      
+      newTime.setHours(adjustedHour);
+      newTime.setMinutes(parseInt(tempMinute));
+      newTime.setSeconds(0);
+      
+      setTime(newTime);
+    }
+    setShowTimePicker(false);
   };
   
   // Weekly day selection
@@ -120,7 +140,7 @@ const AddReminderScreen = ({ navigation }) => {
   };
   
   // Save reminder
-  const saveReminder = () => {
+  const saveReminder = async () => {
     if (!title.trim()) {
       alert('Please enter a reminder title');
       return;
@@ -132,14 +152,53 @@ const AddReminderScreen = ({ navigation }) => {
     }
     
     const newReminder = {
+      id: Date.now().toString(),
       title,
       description,
       time: formatTime(time),
       day: formatDayString(),
+      frequency,
+      date: frequency === 'Once' ? date.toISOString() : null,
+      selectedDay: frequency === 'Weekly' ? selectedDay : null,
+      isEnabled: true,
+      notificationTime: time.toISOString(),
+      notificationId: null
     };
     
-    navigation.navigate('Reminders', { newReminder });
+    try {
+      // Get existing reminders
+      const storedReminders = await AsyncStorage.getItem(REMINDERS_STORAGE_KEY);
+      const existingReminders = storedReminders ? JSON.parse(storedReminders) : [];
+      
+      // Add new reminder
+      const updatedReminders = [...existingReminders, newReminder];
+      
+      // Save to AsyncStorage
+      await AsyncStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(updatedReminders));
+      
+      // Navigate back without params
+      navigation.navigate("MainApp", { screen: "ReminderPage" });
+    } catch (error) {
+      console.error('Failed to save reminder:', error);
+      alert('Could not save your reminder');
+    }
   };
+
+  // Get current hour, minute and period for time picker
+  const getCurrentTimeDetails = () => {
+    const hours = time.getHours();
+    const minutes = time.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 === 0 ? 12 : hours % 12;
+    
+    return {
+      hour: displayHour,
+      minute: minutes.toString().padStart(2, '0'),
+      period
+    };
+  };
+  
+  const currentTime = getCurrentTimeDetails();
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -150,7 +209,7 @@ const AddReminderScreen = ({ navigation }) => {
         >
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <MaterialIcons name="arrow-back" size={24} color="#333333" />
+              <MaterialIcons name="arrow-back" size={19} color="#333333" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>New Reminder</Text>
             <TouchableOpacity onPress={saveReminder}>
@@ -252,7 +311,7 @@ const AddReminderScreen = ({ navigation }) => {
               <Text style={styles.label}>Time</Text>
               <TouchableOpacity 
                 style={styles.dateTimeButton}
-                onPress={() => setShowTimePicker(true)}
+                onPress={openTimePicker}
               >
                 <MaterialIcons name="access-time" size={20} color="#666666" />
                 <Text style={styles.dateTimeText}>{formatTime(time)}</Text>
@@ -264,7 +323,7 @@ const AddReminderScreen = ({ navigation }) => {
           <Modal
             visible={showTimePicker}
             transparent={true}
-            animationType="slide"
+            animationType="none"
             onRequestClose={() => setShowTimePicker(false)}
           >
             <View style={styles.modalOverlay}>
@@ -276,26 +335,121 @@ const AddReminderScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 </View>
                 
-                <ScrollView style={{ maxHeight: 300 }}>
-                  {timeOptions.map((option, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.optionItem}
-                      onPress={() => handleTimeSelect(option.value)}
+                <View style={styles.timePickerContainer}>
+                  {/* Hour selection */}
+                  <View style={styles.timePickerColumn}>
+                    <Text style={styles.timePickerLabel}>Hour</Text>
+                    <ScrollView 
+                      style={styles.timePickerScrollView} 
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={styles.timePickerScrollContent}
                     >
-                      <Text style={styles.optionText}>{option.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                      {generateHours().map((hour) => (
+                        <TouchableOpacity
+                          key={`hour-${hour}`}
+                          style={[
+                            styles.timePickerItem,
+                            tempHour === hour && styles.timePickerItemSelected
+                          ]}
+                          onPress={() => {
+                            handleTempTimeSelect(hour, tempMinute || currentTime.minute, tempPeriod || currentTime.period);
+                          }}
+                        >
+                          <Text style={[
+                            styles.timePickerItemText,
+                            tempHour === hour && styles.timePickerItemTextSelected
+                          ]}>
+                            {hour}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                  
+                  {/* Minute selection */}
+                  <View style={styles.timePickerColumn}>
+                    <Text style={styles.timePickerLabel}>Minute</Text>
+                    <ScrollView 
+                      style={styles.timePickerScrollView} 
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={styles.timePickerScrollContent}
+                    >
+                      {generateMinutes().map((minute) => (
+                        <TouchableOpacity
+                          key={`minute-${minute}`}
+                          style={[
+                            styles.timePickerItem,
+                            tempMinute === minute && styles.timePickerItemSelected
+                          ]}
+                          onPress={() => {
+                            handleTempTimeSelect(tempHour || currentTime.hour, minute, tempPeriod || currentTime.period);
+                          }}
+                        >
+                          <Text style={[
+                            styles.timePickerItemText,
+                            tempMinute === minute && styles.timePickerItemTextSelected
+                          ]}>
+                            {minute}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                  
+                  {/* AM/PM selection */}
+                  <View style={styles.timePickerColumn}>
+                    <Text style={styles.timePickerLabel}>AM/PM</Text>
+                    <View style={styles.amPmContainer}>
+                      <TouchableOpacity
+                        style={[
+                          styles.amPmButton,
+                          tempPeriod === 'AM' && styles.amPmButtonSelected
+                        ]}
+                        onPress={() => {
+                          handleTempTimeSelect(tempHour || currentTime.hour, tempMinute || currentTime.minute, 'AM');
+                        }}
+                      >
+                        <Text style={[
+                          styles.amPmButtonText,
+                          tempPeriod === 'AM' && styles.amPmButtonTextSelected
+                        ]}>AM</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        style={[
+                          styles.amPmButton,
+                          tempPeriod === 'PM' && styles.amPmButtonSelected
+                        ]}
+                        onPress={() => {
+                          handleTempTimeSelect(tempHour || currentTime.hour, tempMinute || currentTime.minute, 'PM');
+                        }}
+                      >
+                        <Text style={[
+                          styles.amPmButtonText,
+                          tempPeriod === 'PM' && styles.amPmButtonTextSelected
+                        ]}>PM</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+                
+                <View style={styles.calendarFooter}>
+                  <TouchableOpacity 
+                    style={styles.confirmButton}
+                    onPress={confirmTimeSelection}
+                  >
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </Modal>
           
-          {/* Date Picker Modal */}
+          {/* Date Picker Modal with Calendar */}
           <Modal
             visible={showDatePicker}
             transparent={true}
-            animationType="slide"
+            animationType="none"
             onRequestClose={() => setShowDatePicker(false)}
           >
             <View style={styles.modalOverlay}>
@@ -307,17 +461,37 @@ const AddReminderScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 </View>
                 
-                <ScrollView style={{ maxHeight: 300 }}>
-                  {dateOptions.map((option, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.optionItem}
-                      onPress={() => handleDateSelect(option.value)}
-                    >
-                      <Text style={styles.optionText}>{option.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                <Calendar
+                  current={formatCalendarDate(date)}
+                  minDate={formatCalendarDate(new Date())}
+                  onDayPress={handleDateSelect}
+                  markedDates={{
+                    [formatCalendarDate(date)]: {selected: true, selectedColor: '#20C997'}
+                  }}
+                  theme={{
+                    backgroundColor: '#ffffff',
+                    calendarBackground: '#ffffff',
+                    textSectionTitleColor: '#666666',
+                    selectedDayBackgroundColor: '#20C997',
+                    selectedDayTextColor: '#ffffff',
+                    todayTextColor: '#20C997',
+                    dayTextColor: '#333333',
+                    textDisabledColor: '#d9e1e8',
+                    dotColor: '#20C997',
+                    selectedDotColor: '#ffffff',
+                    arrowColor: '#20C997',
+                    monthTextColor: '#333333',
+                  }}
+                />
+                
+                <View style={styles.calendarFooter}>
+                  <TouchableOpacity 
+                    style={styles.confirmButton}
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </Modal>
@@ -490,16 +664,86 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-Bold',
     color: '#333333',
   },
-  optionItem: {
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+  // Calendar styles
+  calendarFooter: {
+    marginTop: 15,
+    alignItems: 'flex-end',
   },
-  optionText: {
+  confirmButton: {
+    backgroundColor: '#20C997',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  // Time picker styles
+  timePickerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 15,
+  },
+  timePickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  timePickerLabel: {
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    color: '#666666',
+    marginBottom: 10,
+  },
+  timePickerScrollView: {
+    height: 180,
+    width: '100%',
+  },
+  timePickerScrollContent: {
+    paddingVertical: 8,
+  },
+  timePickerItem: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  timePickerItemSelected: {
+    backgroundColor: '#E3F8F1',
+  },
+  timePickerItemText: {
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Medium',
     color: '#333333',
-  }
+  },
+  timePickerItemTextSelected: {
+    color: '#20C997',
+    fontFamily: 'PlusJakartaSans-Bold',
+  },
+  amPmContainer: {
+    width: '100%',
+  },
+  amPmButton: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  amPmButtonSelected: {
+    backgroundColor: '#E3F8F1',
+  },
+  amPmButtonText: {
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Medium',
+    color: '#333333',
+  },
+  amPmButtonTextSelected: {
+    color: '#20C997',
+    fontFamily: 'PlusJakartaSans-Bold',
+  },
 });
 
 export default AddReminderScreen;

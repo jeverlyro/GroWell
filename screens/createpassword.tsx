@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform
+  View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView
 } from 'react-native';
 import { Button } from '../components/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,12 +15,14 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
     'PlusJakartaSans-Regular': require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
     'PlusJakartaSans-Bold': require('../assets/fonts/PlusJakartaSans-Bold.ttf'),
+    'PlusJakartaSans-Medium': require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
   });
 
   React.useEffect(() => {
     const hasNumber = /\d/.test(password);
-    const isLongEnough = password.length >= 6;
-    setIsValid(isLongEnough && hasNumber && password === confirmPassword);
+    const isLongEnough = password.length >= 8;
+    const passwordsMatch = password === confirmPassword;
+    setIsValid(isLongEnough && hasNumber && passwordsMatch);
   }, [password, confirmPassword]);
 
   const handleCreatePassword = () => {
@@ -43,49 +45,54 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoid}
       >
-        <View style={styles.innerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={28} color="#1C1B1F" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Create</Text>
-          <Text style={styles.greenText}>Password</Text>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <MaterialIcons name="arrow-back" size={19} color="#1C1B1F" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Create</Text>
+            <Text style={styles.greenText}>Password</Text>
+          </View>
+          
           <Text style={styles.subtitle}>Your email is verified, now let's make a password for your account safety.</Text>
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Enter your password"
-            placeholderTextColor="#B5B5B5"
-            secureTextEntry
-            
-          />
+          <View style={styles.formContainer}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              placeholderTextColor="#B5B5B5"
+              secureTextEntry
+            />
 
-          <Text style={styles.label}>Retype Password</Text>
-          <TextInput
-            style={styles.input}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Retype your password"
-            placeholderTextColor="#B5B5B5"
-            secureTextEntry
-          />
+            <Text style={styles.label}>Retype Password</Text>
+            <TextInput
+              style={styles.input}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Retype your password"
+              placeholderTextColor="#B5B5B5"
+              secureTextEntry
+            />
 
-          <View style={styles.validationContainer}>
-            <Text style={[styles.validationText, password.length >= 8 ? styles.valid : styles.invalid]}>✓ At least 8 characters</Text>
-            <Text style={[styles.validationText, /\d/.test(password) ? styles.valid : styles.invalid]}>✓ Must contain at least 1 number</Text>
+            <View style={styles.validationContainer}>
+              <Text style={[styles.validationText, password.length >= 8 ? styles.valid : styles.invalid]}>✓ At least 8 characters</Text>
+              <Text style={[styles.validationText, /\d/.test(password) ? styles.valid : styles.invalid]}>✓ Must contain at least 1 number</Text>
+              {confirmPassword.length > 0 && (
+                <Text style={[styles.validationText, password === confirmPassword ? styles.valid : styles.invalid]}>✓ Passwords match</Text>
+              )}
+            </View>
+
+            <Button title="Create & Sign In" onPress={handleCreatePassword} disabled={!isValid} style={styles.button} />
           </View>
-
-          <Button title="Create & Sign In" onPress={handleCreatePassword} disabled={!isValid} style={styles.button} />
-        </View>
-        
+        </ScrollView>
       </KeyboardAvoidingView>
-      <View style={styles.footer}>
-            <Text style={styles.footerText}>Need help? <Text style={styles.contactText}>Contact Us</Text></Text>
-        </View>
     </SafeAreaView>
-    
   );
 };
 
@@ -97,13 +104,20 @@ const styles = StyleSheet.create({
   keyboardAvoid: {
     flex: 1,
   },
-  innerContainer: {
-    padding: 28,
-    
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {
-    marginTop:50,
-    marginBottom:20,
+    padding: 10,
+    alignSelf: 'flex-start',
+  },
+  titleContainer: {
+    marginTop: 10,
   },
   title: {
     fontSize: 56,
@@ -111,29 +125,26 @@ const styles = StyleSheet.create({
     color: '#202020',
     marginBottom: -20,
     marginLeft: -5,
-
-    
   },
   greenText: {
     color: '#16C47F',
     fontFamily: 'PlusJakartaSans-Bold',
     fontSize: 56,
     marginLeft: -5,
-  
-
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Medium',
+    fontFamily: 'PlusJakartaSans-Regular',
     color: '#202020',
     marginVertical: 15,
-    marginBottom: 50,
-
-  
+    marginBottom: 30,
+  },
+  formContainer: {
+    width: '100%',
   },
   label: {
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Bold',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans-Regular',
     color: '#000000',
     marginTop: 15,
   },
@@ -146,11 +157,12 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
   validationContainer: {
-    marginTop: 10,
+    marginTop: 15,
   },
   validationText: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans-Regular',
+    marginVertical: 2,
   },
   valid: {
     color: 'green',
@@ -159,21 +171,16 @@ const styles = StyleSheet.create({
     color: 'red',
   },
   button: {
-    marginTop: 20,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 15,
-    backgroundColor: '#F5F5F5',
-  },
-  footerText: {
-    fontSize: 10,
-    color: '#000000',
-    fontFamily: 'PlusJakartaSans-Regular',
+    marginTop: 30,
   },
   contactText: {
     color: '#16C47F',
     fontFamily: 'PlusJakartaSans-Bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
