@@ -17,6 +17,7 @@ import EducationalContentScreen from './screens/educationalcontent';
 import CommunityScreen from './screens/community';
 import RemindersPage from './screens/reminder';
 import CreatePassword from './screens/createpassword';
+import NewPassword from './screens/newpassword';
 import SignIn from './screens/signin';
 // Import feature screens
 import StuntingCalculatorScreen from './screens/stuntingcalculator';
@@ -104,6 +105,7 @@ function AppContent() {
           <Stack.Screen name="GetStarted" component={GetStartedScreen} />
           <Stack.Screen name="SignIn" component={SignIn}/>
           <Stack.Screen name="CreatePassword" component={CreatePassword}/>
+          <Stack.Screen name="NewPassword" component={NewPassword}/>
           <Stack.Screen name="Home" component={MainTabs} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="EducationalContent" component={EducationalContentScreen} />

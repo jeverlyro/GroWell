@@ -100,7 +100,7 @@ const SignInScreen = ({ navigation }) => {
                   size={10}
                 />
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('EmailConfirmation')}>
+              <TouchableOpacity onPress={() => navigation.navigate('NewPassword')}>
                 <Text style={styles.optionText}>Forgot password?</Text>
               </TouchableOpacity>
             </View>

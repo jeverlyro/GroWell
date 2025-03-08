@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 
-const CreatePasswordScreen: React.FC = ({ navigation }) => {
+const NewPasswordScreen: React.FC = ({ navigation }) => {
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean>(false);
@@ -47,16 +47,16 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <MaterialIcons name="arrow-back" size={28} color="#1C1B1F" />
           </TouchableOpacity>
-          <Text style={styles.title}>Create</Text>
+          <Text style={styles.title}>New</Text>
           <Text style={styles.greenText}>Password</Text>
-          <Text style={styles.subtitle}>Your email is verified, now let's make a password for your account safety.</Text>
+          <Text style={styles.subtitle}>We've sent you a code to verify your password changes</Text>
 
           <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            placeholder="*********"
+            placeholder="********"
             placeholderTextColor="#B5B5B5"
             secureTextEntry
             
@@ -77,7 +77,7 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
             <Text style={[styles.validationText, /\d/.test(password) ? styles.valid : styles.invalid]}>✓ Must contain at least 1 number</Text>
           </View>
 
-          <Button title="Create & Sign In" onPress={handleCreatePassword} disabled={!isValid} style={styles.button} />
+          <Button title="Changes Password" onPress={handleCreatePassword} disabled={!isValid} style={styles.button} />
         </View>
         
       </KeyboardAvoidingView>
@@ -177,4 +177,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CreatePasswordScreen;
+export default NewPasswordScreen;
