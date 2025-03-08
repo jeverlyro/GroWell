@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'react-native';
@@ -15,11 +15,14 @@ import ProfileScreen from './screens/profile';
 import EducationalContentScreen from './screens/educationalcontent';
 import CommunityScreen from './screens/community';
 import RemindersPage from './screens/reminder';
+import CreatePassword from './screens/createpassword';
+import SignIn from './screens/signin';
 
 // Import feature screens
 import StuntingCalculatorScreen from './screens/stuntingcalculator';
 import NutritionPlanScreen from './screens/nutritionplan';
 import AddReminderScreen from './screens/addReminder';
+import GrowthTrackerScreen from './screens/GrowthTrackerScreen';
 import { registerForPushNotificationsAsync } from './screens/services/notificationService';
 
 // Import settings screen
@@ -27,6 +30,7 @@ import SettingsScreen from './screens/settings/SettingsScreen';
 import AccountSettings from './screens/settings/AccountSettings';
 import LanguageSettings from './screens/settings/LanguageSettings';
 import NotificationSettings from './screens/settings/NotificationSettings';
+import EmailConfirmationScreen from './screens/emailverif';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -35,32 +39,26 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        unmountOnBlur: false,
         headerShown: false,
         tabBarIcon: ({ color, size }) => {
           let iconName;
           switch (route.name) {
             case 'Learn':
               iconName = 'menu-book';
-              size = 22;
               break;
             case 'Community':
               iconName = 'people';
-              size = 22;
               break;
-            case 'Reminder':
+            case 'ReminderPage':  // Updated from 'Reminder' to 'ReminderPage'
               iconName = 'alarm';
-              size = 22;
               break;
-            case 'Profile':
+            case 'ProfileTab':
               iconName = 'person';
-              size = 22;
               break;
             default:
               iconName = 'home';
-              size = 22;
           }
-          return <MaterialIcons name={iconName} size={size} color={color} />;
+          return <MaterialIcons name={iconName} size={22} color={color} />;
         },
         tabBarActiveTintColor: '#20C997',
         tabBarStyle: {
@@ -71,20 +69,47 @@ function MainTabs() {
           fontSize: 12,
           fontFamily: 'PlusJakartaSans-Bold',
         },
-        tabBarPressColor: 'transparent',
+        lazy: true, 
+        animationEnabled: true,
+        tabBarShowLabel: true,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Learn" component={EducationalContentScreen} />
-      <Tab.Screen name="Community" component={CommunityScreen} />
-      <Tab.Screen name="Reminder" component={RemindersPage} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen 
+        name="HomeTab" 
+        component={HomeScreen}
+        options={{ tabBarLabel: 'Home' }}
+      />
+      <Tab.Screen 
+        name="Learn" 
+        component={EducationalContentScreen}
+      />
+      <Tab.Screen 
+        name="Community" 
+        component={CommunityScreen}
+      />
+      <Tab.Screen 
+        name="ReminderPage" 
+        component={RemindersPage}
+        options={{ tabBarLabel: 'Reminder' }}
+      />
+      <Tab.Screen 
+        name="ProfileTab" 
+        component={ProfileScreen}
+        options={{ tabBarLabel: 'Profile' }}
+      />
     </Tab.Navigator>
   );
 }
 
 function AppContent() {
   const navigationRef = useRef(null);
+  
+  useEffect(() => {
+    // Register for push notifications when app starts
+    registerForPushNotificationsAsync().catch(err => 
+      console.log('Failed to register for push notifications:', err)
+    );
+  }, []);
 
   return (
     <SafeAreaProvider>
@@ -98,25 +123,30 @@ function AppContent() {
           screenOptions={{
             headerShown: false,
             animation: 'none',
+            cardStyleInterpolator: ({ current }) => ({
+              cardStyle: {
+                opacity: current.progress,
+              },
+            }),
+            detachPreviousScreen: true,
           }}
         >
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="GetStarted" component={GetStartedScreen} />
-          
-          <Stack.Screen name="Home" component={MainTabs} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="EducationalContent" component={EducationalContentScreen} />
-          <Stack.Screen name="Community" component={CommunityScreen} />
+          <Stack.Screen name="SignIn" component={SignIn}/>
+          <Stack.Screen name="CreatePassword" component={CreatePassword}/>
+          <Stack.Screen name="MainApp" component={MainTabs} />
           <Stack.Screen name="StuntingCalculator" component={StuntingCalculatorScreen} />
           <Stack.Screen name="NutritionPlan" component={NutritionPlanScreen} />
-          <Stack.Screen name="Reminders" component={RemindersPage} />
           <Stack.Screen name="AddReminder" component={AddReminderScreen}/>
+          <Stack.Screen name="GrowthTracker" component={GrowthTrackerScreen}/>
           
           <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
           <Stack.Screen name="AccountSettings" component={AccountSettings} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
           <Stack.Screen name="LanguageSettings" component={LanguageSettings} />
+          <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen}/>
         </Stack.Navigator> 
       </NavigationContainer>
     </SafeAreaProvider>

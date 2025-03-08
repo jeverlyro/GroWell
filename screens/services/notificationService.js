@@ -1,42 +1,24 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-// Configure notifications to show alerts when app is in foreground
+// Configure notification behavior
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
-    shouldSetBadge: true,
+    shouldSetBadge: false,
   }),
 });
 
-// Request permission to send notifications
+// Register for push notifications
 export async function registerForPushNotificationsAsync() {
   let token;
   
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    
-    if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
-      return null;
-    }
-    
-    token = (await Notifications.getExpoPushTokenAsync()).data;
-  } else {
-    console.log('Must use physical device for Push Notifications');
-  }
-
-  // Required for Android
   if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
+    // Set notification channel for Android
+    await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
@@ -44,103 +26,145 @@ export async function registerForPushNotificationsAsync() {
     });
   }
 
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    
+    // Only ask for permission if not already granted
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    
+    // Return null if permission not granted
+    if (finalStatus !== 'granted') {
+      console.log('Failed to get push token for push notification!');
+      return null;
+    }
+    
+    // Get expo push token
+    token = (await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    })).data;
+  } else {
+    console.log('Must use physical device for Push Notifications');
+  }
+
   return token;
 }
 
-// Schedule a notification
+// Schedule a notification with proper trigger format
 export async function scheduleNotification(title, body, trigger) {
   try {
-    const id = await Notifications.scheduleNotificationAsync({
+    // Schedule the notification with the updated trigger format
+    const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title,
-        body,
+        body: body || '',
         sound: true,
         priority: Notifications.AndroidNotificationPriority.HIGH,
       },
       trigger,
     });
-    return id;
+    
+    return notificationId;
   } catch (error) {
     console.error("Error scheduling notification:", error);
-    return null;
+    throw error;
   }
 }
 
 // Cancel a specific notification
 export async function cancelNotification(notificationId) {
-  await Notifications.cancelScheduledNotificationAsync(notificationId);
-}
-
-// Parse time string "10:00 AM" to Date object components
-export function parseTimeString(timeString, dayString) {
-  // Parse time
-  const [time, period] = timeString.split(' ');
-  let [hours, minutes] = time.split(':').map(Number);
-  
-  if (period === 'PM' && hours < 12) hours += 12;
-  if (period === 'AM' && hours === 12) hours = 0;
-
-  // Create date
-  const now = new Date();
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-
-  // Handle different day formats
-  if (dayString === 'Tomorrow') {
-    date.setDate(now.getDate() + 1);
-  } else if (dayString === 'Daily') {
-    // If time already passed today, schedule for tomorrow
-    if (date < now) {
-      date.setDate(now.getDate() + 1);
-    }
-  } else if (dayString.startsWith('Every')) {
-    // Handle weekly reminders (e.g. "Every Sunday")
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const targetDay = dayString.split(' ')[1].toLowerCase();
-    const targetDayIndex = days.indexOf(targetDay);
-    
-    if (targetDayIndex !== -1) {
-      const currentDay = now.getDay();
-      let daysUntilTarget = targetDayIndex - currentDay;
-      if (daysUntilTarget <= 0) daysUntilTarget += 7;
-      date.setDate(now.getDate() + daysUntilTarget);
-    }
-  } else if (dayString.startsWith('Wed, Mar')) {
-    // Specific date format like "Wed, Mar 6"
-    const dateParts = dayString.split(', ');
-    const monthDay = dateParts[1].split(' ');
-    
-    const months = {'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 
-                   'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11};
-    
-    date.setMonth(months[monthDay[0]]);
-    date.setDate(parseInt(monthDay[1]));
+  try {
+    await Notifications.cancelScheduledNotificationAsync(notificationId);
+    return true;
+  } catch (error) {
+    console.error("Error canceling notification:", error);
+    return false;
   }
-
-  return date;
 }
 
-// Get trigger for notification based on reminder settings
+// Convert a reminder object to a proper notification trigger
 export function getTriggerFromReminder(reminder) {
-  const date = parseTimeString(reminder.time, reminder.day);
-  
-  // Return appropriate trigger based on frequency
-  if (reminder.day === 'Daily') {
-    return {
-      hour: date.getHours(),
-      minute: date.getMinutes(),
-      repeats: true,
+  try {
+    // Parse time from reminder
+    const reminderTime = reminder.notificationTime ? new Date(reminder.notificationTime) : new Date();
+    
+    // Different trigger based on frequency
+    switch (reminder.frequency) {
+      case 'Once':
+        if (reminder.date) {
+          const date = new Date(reminder.date);
+          // Set the hours and minutes from the time
+          date.setHours(reminderTime.getHours());
+          date.setMinutes(reminderTime.getMinutes());
+          date.setSeconds(0);
+          
+          // Use the proper trigger format
+          return { 
+            type: 'date',
+            timestamp: date.getTime()
+          };
+        }
+        break;
+        
+      case 'Daily':
+        // Get current date and set time
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(reminderTime.getHours());
+        tomorrow.setMinutes(reminderTime.getMinutes());
+        tomorrow.setSeconds(0);
+        
+        // Daily repeat
+        return {
+          hour: reminderTime.getHours(),
+          minute: reminderTime.getMinutes(),
+          repeats: true
+        };
+        
+      case 'Weekly':
+        if (reminder.selectedDay) {
+          // Get day index (0-6, where 0 is Sunday)
+          const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const dayIndex = weekdays.indexOf(reminder.selectedDay);
+          
+          if (dayIndex !== -1) {
+            // Set weekday, hours and minutes
+            return {
+              weekday: dayIndex + 1,
+              hour: reminderTime.getHours(),
+              minute: reminderTime.getMinutes(),
+              repeats: true
+            };
+          }
+        }
+        break;
+    }
+    
+    // Default to scheduling for next day if something goes wrong
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(reminderTime.getHours());
+    tomorrow.setMinutes(reminderTime.getMinutes());
+    tomorrow.setSeconds(0);
+    
+    return { 
+      type: 'date',
+      timestamp: tomorrow.getTime()
     };
-  } else if (reminder.day.startsWith('Every')) {
-    // Weekly reminder
-    return {
-      weekday: date.getDay() + 1, // expo-notifications uses 1-7 for weekdays
-      hour: date.getHours(),
-      minute: date.getMinutes(),
-      repeats: true,
+    
+  } catch (error) {
+    console.error("Error creating trigger from reminder:", error);
+    
+    // Fallback to tomorrow at the same time
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    return { 
+      type: 'date',
+      timestamp: tomorrow.getTime()
     };
-  } else {
-    // One-time reminder
-    return date;
   }
 }

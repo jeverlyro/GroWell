@@ -494,7 +494,7 @@ const StuntingCalculatorScreen = ({ navigation }) => {
         <View style={styles.actionButtonsContainer}>
           <Button
             title="Save Results"
-            onPress={() => navigation.navigate('Home')}
+            onPress={() => navigation.navigate("MainApp", { screen: "HomeTab" })}
             style={[styles.saveButton, { backgroundColor: resultColor }]}
           />
           

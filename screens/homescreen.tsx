@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+// Add Material Icons import
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // Image carousel data
 const carouselData = [
@@ -35,13 +37,13 @@ const carouselData = [
   },
 ];
 
-// Feature cards data - reduced to just the main features
+// Feature cards data - updated to use Material icons
 const features = [
   {
     id: '1',
     title: 'Stunting Risk Calculator',
     description: 'AI-based analysis to detect early signs of stunting',
-    icon: require('../assets/calculator-icon.png'),
+    icon: 'calculate', // Material icon name
     screen: 'StuntingCalculator',
     color: '#E3F8F1',
   },
@@ -49,7 +51,7 @@ const features = [
     id: '2',
     title: 'Personalized Nutrition Plans',
     description: 'Meal recommendations based on age and health data',
-    icon: require('../assets/nutrition-icon.png'),
+    icon: 'restaurant', // Material icon name
     screen: 'NutritionPlan',
     color: '#FFF3E0',
   },
@@ -58,7 +60,7 @@ const features = [
 const FeatureCard = ({ title, description, icon, color, onPress }) => {
   return (
     <TouchableOpacity style={[styles.card, { backgroundColor: color }]} onPress={onPress}>
-      <Image source={icon} style={styles.cardIcon} resizeMode="contain" />
+      <MaterialIcons name={icon} size={40} color="#20C997" style={styles.cardIcon} />
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardDescription}>{description}</Text>
@@ -140,14 +142,23 @@ const HomeScreen = ({ navigation }) => {
       
       // Scroll to next item
       if (flatListRef.current) {
-        flatListRef.current.scrollToIndex({
-          index: nextIndex,
-          animated: true
-        });
+        try {
+          flatListRef.current.scrollToIndex({
+            index: nextIndex,
+            animated: true,
+            viewOffset: 0,
+            viewPosition: 0
+          });
+        } catch (error) {
+          console.log("Scroll error:", error);
+        } finally {
+          // Always update the active index regardless of scroll success
+          setActiveCarouselIndex(nextIndex);
+        }
+      } else {
+        // If ref isn't ready yet, just update the index
+        setActiveCarouselIndex(nextIndex);
       }
-      
-      // Update active index
-      setActiveCarouselIndex(nextIndex);
     }, 4000);  // Auto scroll every 4 seconds
     
     return () => clearInterval(timer);
@@ -159,7 +170,7 @@ const HomeScreen = ({ navigation }) => {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>GroWell</Text>
-            <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
+            <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('MainApp', { screen: 'ProfileTab' })}>
               <Image 
                 source={require('../assets/profile-placeholder.png')} 
                 style={styles.profileIcon} 
@@ -235,14 +246,11 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
           
-          {/* Quick Tips Section */}
+          {/* Quick Tips Section - Updated with Material Icons */}
           <View style={styles.tipsSection}>
             <Text style={styles.sectionTitle}>Quick Tips</Text>
             <View style={styles.tipCard}>
-              <Image 
-                source={require('../assets/logo.png')} 
-                style={styles.tipIcon} 
-              />
+              <MaterialIcons name="lightbulb" size={40} color="#20C997" style={styles.tipIcon} />
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Tip of the Day</Text>
                 <Text style={styles.tipText}>
@@ -374,8 +382,6 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   cardIcon: {
-    width: 50,
-    height: 50,
     marginRight: 15,
   },
   cardContent: {
@@ -433,8 +439,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tipIcon: {
-    width: 40,
-    height: 40,
     marginRight: 15,
   },
   tipContent: {
