@@ -16,13 +16,13 @@ const onboardingData = [
     id: '2',
     title: 'Personalized Nutrition',
     description: 'Get meal plans and recommendations tailored to your child\'s age and health needs.',
-    image: require('../assets/onboarding2.png'),
+    image: require('../assets/onboardingImages/Poke bowl-amico.png'),
   },
   {
     id: '3',
     title: 'Expert Guidance',
     description: 'Access educational articles and videos backed by pediatric health experts.',
-    image: require('../assets/onboarding3.png'),
+    image: require('../assets/onboardingImages/Pediatrician-amico.png'),
   },
 ];
 

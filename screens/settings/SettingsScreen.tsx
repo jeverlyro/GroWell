@@ -72,7 +72,7 @@ const SettingsScreen = ({ navigation }) => {
           
           <TouchableOpacity 
             style={styles.settingItem}
-            onPress={() => navigation.navigate('HelpSupport')}
+            onPress={() => navigation.navigate('HelpAndSupportScreen')}
           >
             <View style={styles.settingIconContainer}>
               <MaterialIcons name="help" size={22} color="#20C997" />
@@ -81,15 +81,7 @@ const SettingsScreen = ({ navigation }) => {
             <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingIconContainer}>
-              <MaterialIcons name="feedback" size={22} color="#20C997" />
-            </View>
-            <Text style={styles.settingItemText}>Send Feedback</Text>
-            <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('AboutScreen')}>
             <View style={styles.settingIconContainer}>
               <MaterialIcons name="info" size={22} color="#20C997" />
             </View>

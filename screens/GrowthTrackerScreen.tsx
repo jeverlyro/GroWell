@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontFamily: 'PlusJakartaSans-Bold',
-    color: '#20C997',
+    color: '#202020',
   },
   content: {
     flex: 1,

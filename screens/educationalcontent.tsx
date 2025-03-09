@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const EducationalContentScreen = () => {
+const EducationalContentScreen = ({ navigation }) => {
   // Add state for search and filters
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -81,136 +81,153 @@ const EducationalContentScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Learn</Text>
-      </View>
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={24} color="#AAAAAA" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search for topics..."
-            placeholderTextColor="#AAAAAA"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+    <View style={styles.container}>
+      <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
+        {/* Header - matched with homescreen */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>GroWell Learn</Text>
         </View>
         
-        {/* Category Filter Pills */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          style={styles.categoriesContainer}
-          contentContainerStyle={styles.categoriesContent}
-        >
-          {categories.map(category => (
-            <TouchableOpacity 
-              key={category} 
-              style={[
-                styles.categoryPill, 
-                activeCategory === category && styles.activeCategoryPill
-              ]}
-              onPress={() => setActiveCategory(category)}
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Search Bar */}
+          <View style={styles.searchSection}>
+            <View style={styles.searchContainer}>
+              <MaterialIcons name="search" size={24} color="#AAAAAA" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for topics..."
+                placeholderTextColor="#AAAAAA"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          </View>
+          
+          {/* Category Filter Pills */}
+          <View style={styles.categoriesSection}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              contentContainerStyle={styles.categoriesContent}
             >
-              <Text 
-                style={[
-                  styles.categoryText, 
-                  activeCategory === category && styles.activeCategoryText
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        
-        {/* Articles Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Articles</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
-            </TouchableOpacity>
+              {categories.map(category => (
+                <TouchableOpacity 
+                  key={category} 
+                  style={[
+                    styles.categoryPill, 
+                    activeCategory === category && styles.activeCategoryPill
+                  ]}
+                  onPress={() => setActiveCategory(category)}
+                >
+                  <Text 
+                    style={[
+                      styles.categoryText, 
+                      activeCategory === category && styles.activeCategoryText
+                    ]}
+                  >
+                    {category}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
           
-          {filteredArticles.length > 0 ? (
-            filteredArticles.map(article => renderArticleCard(article))
-          ) : (
-            <View style={styles.emptyStateContainer}>
-              <MaterialIcons name="search-off" size={48} color="#CCCCCC" />
-              <Text style={styles.emptyStateText}>No articles found</Text>
+          {/* Articles Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Featured Articles</Text>
+              <TouchableOpacity style={styles.moreButton}>
+                <Text style={styles.moreButtonText}>See All</Text>
+                <MaterialIcons name="chevron-right" size={16} color="#20C997" />
+              </TouchableOpacity>
             </View>
-          )}
-        </View>
-        
-        {/* Videos Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Educational Videos</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
-            </TouchableOpacity>
+            
+            {filteredArticles.length > 0 ? (
+              filteredArticles.map(article => renderArticleCard(article))
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <MaterialIcons name="search-off" size={48} color="#CCCCCC" />
+                <Text style={styles.emptyStateText}>No articles found</Text>
+              </View>
+            )}
           </View>
           
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.videosContainer}>
-            {videos.map(video => renderVideoCard(video))}
-          </ScrollView>
-        </View>
-        
-        {/* New Section: Quick Tips */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quick Tips</Text>
-          </View>
-          <View style={styles.tipCard}>
-            <View style={styles.tipIconContainer}>
-              <MaterialIcons name="lightbulb" size={28} color="#FFFFFF" />
+          {/* Videos Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Educational Videos</Text>
+              <TouchableOpacity style={styles.moreButton}>
+                <Text style={styles.moreButtonText}>See All</Text>
+                <MaterialIcons name="chevron-right" size={16} color="#20C997" />
+              </TouchableOpacity>
             </View>
-            <View style={styles.tipContent}>
-              <Text style={styles.tipTitle}>Tip of the Day</Text>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.videosContainer}>
+              {videos.map(video => renderVideoCard(video))}
+            </ScrollView>
+          </View>
+          
+          {/* Quick Tips - styled like the Tip Card in homescreen */}
+          <View style={styles.tipsSection}>
+            <Text style={styles.sectionTitle}>Daily Tips</Text>
+            <View style={styles.tipCard}>
+              <View style={styles.tipHeader}>
+                <MaterialIcons name="lightbulb" size={24} color="#20C997" />
+                <Text style={styles.tipTitle}>Tip of the Day</Text>
+              </View>
               <Text style={styles.tipText}>
                 Include colorful vegetables in every meal to ensure your child gets essential nutrients.
               </Text>
+              <TouchableOpacity style={styles.moreButton}>
+                <Text style={styles.moreButtonText}>More Tips</Text>
+                <MaterialIcons name="chevron-right" size={16} color="#20C997" />
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          
+          {/* Bottom padding */}
+          <View style={{ height: 20 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
+
+const windowWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F7F7F7',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: 'PlusJakartaSans-Bold',
     color: '#20C997',
   },
   scrollView: {
     flex: 1,
   },
+  searchSection: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    marginBottom: 8,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-    marginHorizontal: 20,
-    marginVertical: 10,
+    borderRadius: 10,
     paddingHorizontal: 10,
   },
   searchIcon: {
@@ -219,20 +236,22 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'PlusJakartaSans-Regular',
     color: '#333333',
   },
-  categoriesContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 10,
+  categoriesSection: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    marginBottom: 8,
   },
   categoriesContent: {
+    paddingHorizontal: 16,
     alignItems: 'center',
   },
   categoryPill: {
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: '#F0F0F0',
     marginRight: 10,
@@ -241,7 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#20C997',
   },
   categoryText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'PlusJakartaSans-Medium',
     color: '#666666',
   },
@@ -249,7 +268,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   section: {
-    padding: 20,
+    marginTop: 8,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -258,14 +279,20 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'PlusJakartaSans-Bold',
+    paddingBottom: 8,
     color: '#333333',
   },
-  seeAllText: {
+  moreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  moreButtonText: {
     fontSize: 14,
     fontFamily: 'PlusJakartaSans-Medium',
     color: '#20C997',
+    marginRight: 4,
   },
   articleCard: {
     flexDirection: 'row',
@@ -273,11 +300,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 15,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
   },
   articleImage: {
     width: 100,
@@ -294,7 +316,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   articleTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'PlusJakartaSans-Bold',
     color: '#333333',
     marginBottom: 8,
@@ -306,12 +328,12 @@ const styles = StyleSheet.create({
   },
   emptyStateContainer: {
     alignItems: 'center',
-    marginTop: 20,
+    paddingVertical: 20,
   },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'PlusJakartaSans-Regular',
-    color: '#CCCCCC',
+    color: '#AAAAAA',
     marginTop: 10,
   },
   videosContainer: {
@@ -319,16 +341,17 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   videoCard: {
-    width: 220,
+    width: 200,
     marginRight: 15,
   },
   videoImageContainer: {
     width: '100%',
-    height: 130,
+    height: 120,
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
     marginBottom: 8,
+    backgroundColor: '#F5F5F5',
   },
   videoImage: {
     width: '100%',
@@ -355,40 +378,34 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-Regular',
     color: '#666666',
   },
+  tipsSection: {
+    marginTop: 8,
+    paddingTop: 16,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+  },
   tipCard: {
-    flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
     borderRadius: 12,
-    overflow: 'hidden',
-    padding: 15,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    padding: 16,
+    backgroundColor: '#F6FFF8',
   },
-  tipIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#20C997',
-    justifyContent: 'center',
+  tipHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 15,
-  },
-  tipContent: {
-    flex: 1,
+    marginBottom: 8,
   },
   tipTitle: {
     fontSize: 16,
     fontFamily: 'PlusJakartaSans-Bold',
     color: '#333333',
-    marginBottom: 5,
+    marginLeft: 10,
   },
   tipText: {
     fontSize: 14,
     fontFamily: 'PlusJakartaSans-Regular',
-    color: '#666666',
+    color: '#555555',
+    marginBottom: 12,
   },
 });
 

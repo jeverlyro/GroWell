@@ -1,93 +1,110 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const AccountSettings = ({ navigation }) => {
   const [name, setName] = useState('GroWell');
   const [email, setEmail] = useState('growell.team@example.com');
-  const [phoneNumber, setPhoneNumber] = useState('+1 234 567 8900');
-  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
-  
+  const [phone, setPhone] = useState('+1 234 567 8900');
+
+  const handleSaveChanges = () => {
+    // In a real app, you would save changes to a backend or local storage
+    // For now, we just navigate back
+    navigation.goBack();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={20} color="#333333" />
+          <Ionicons name="arrow-back" size={19} color="#333333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Account Settings</Text>
+        <Text style={styles.headerTitle}>Edit Profile</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile Information</Text>
-          
-          <View style={styles.inputContainer}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.profileImageSection}>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.profileImage}
+          />
+          <TouchableOpacity style={styles.changePhotoButton}>
+            <Text style={styles.changePhotoText}>Change Photo</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.formSection}>
+          <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Full Name</Text>
-            <TextInput
-              style={styles.textInput}
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter your full name"
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="Enter your full name"
+              />
+            </View>
           </View>
-          
-          <View style={styles.inputContainer}>
+
+          <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              style={styles.textInput}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
           </View>
-          
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Phone Number</Text>
-            <TextInput
-              style={styles.textInput}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="Enter your phone number"
-              keyboardType="phone-pad"
-            />
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Phone</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="Enter your phone number"
+                keyboardType="phone-pad"
+              />
+            </View>
           </View>
         </View>
-        
-        <View style={styles.section}>
+
+        <View style={styles.securitySection}>
           <Text style={styles.sectionTitle}>Security</Text>
           
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingItemText}>Change Password</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('ChangePassword')}
+          >
+            <View style={styles.menuIconContainer}>
+              <MaterialIcons name="lock" size={22} color="#20C997" />
+            </View>
+            <Text style={styles.menuItemText}>Change Password</Text>
+            <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
           </TouchableOpacity>
           
-          <View style={styles.settingItem}>
-            <Text style={styles.settingItemText}>Two-Factor Authentication</Text>
-            <Switch
-              trackColor={{ false: "#DDDDDD", true: "#A5EDD5" }}
-              thumbColor={twoFactorAuth ? "#20C997" : "#FFFFFF"}
-              ios_backgroundColor="#DDDDDD"
-              onValueChange={() => setTwoFactorAuth(!twoFactorAuth)}
-              value={twoFactorAuth}
-            />
-          </View>
-        </View>
-        
-        <TouchableOpacity style={styles.dangerButton}>
-          <Text style={styles.dangerButtonText}>Delete Account</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.buttonContainer}>
           <TouchableOpacity 
-            style={styles.saveButton}
-            onPress={() => navigation.goBack()}
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('PrivacySettings')}
           >
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+            <View style={styles.menuIconContainer}>
+              <MaterialIcons name="security" size={22} color="#20C997" />
+            </View>
+            <Text style={styles.menuItemText}>Privacy Settings</Text>
+            <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+          <Text style={styles.saveButtonText}>Save Changes</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -108,25 +125,38 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F0F0F0',
   },
   headerTitle: {
-    fontSize: 22,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: '#20C997',
-  },
-  scrollView: {
-    flex: 1,
-    padding: 20,
-  },
-  section: {
-    marginBottom: 25,
-  },
-  sectionTitle: {
     fontSize: 18,
     fontFamily: 'PlusJakartaSans-Bold',
     color: '#333333',
-    marginBottom: 15,
   },
-  inputContainer: {
-    marginBottom: 15,
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  profileImageSection: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  changePhotoButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  changePhotoText: {
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans-Medium',
+    color: '#20C997',
+  },
+  formSection: {
+    marginBottom: 30,
+  },
+  inputGroup: {
+    marginBottom: 20,
   },
   inputLabel: {
     fontSize: 14,
@@ -134,52 +164,61 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginBottom: 8,
   },
-  textInput: {
-    height: 50,
+  inputContainer: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 15,
+    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
+  },
+  input: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     fontSize: 16,
     fontFamily: 'PlusJakartaSans-Regular',
+    color: '#333333',
   },
-  settingItem: {
+  securitySection: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'PlusJakartaSans-Bold',
+    color: '#333333',
+    marginBottom: 15,
+  },
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
-  settingItemText: {
+  menuIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  menuItemText: {
+    flex: 1,
     fontSize: 16,
     fontFamily: 'PlusJakartaSans-Medium',
     color: '#333333',
   },
-  dangerButton: {
-    paddingVertical: 15,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  dangerButtonText: {
-    fontSize: 16,
-    fontFamily: 'PlusJakartaSans-Medium',
-    color: '#FF6B6B',
-  },
-  buttonContainer: {
-    marginTop: 30,
-    marginBottom: 40,
-  },
   saveButton: {
     backgroundColor: '#20C997',
+    borderRadius: 8,
     paddingVertical: 15,
-    borderRadius: 10,
     alignItems: 'center',
+    marginBottom: 30,
   },
   saveButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'PlusJakartaSans-SemiBold',
-    color: 'white',
   },
 });
 

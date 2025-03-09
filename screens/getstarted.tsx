@@ -28,14 +28,6 @@ const GetStartedScreen = ({ navigation }) => {
     }
   };
 
-  if (!fontsLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -47,7 +39,7 @@ const GetStartedScreen = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={30} color="#333333" marginLeft={30} />
+            <MaterialIcons name="arrow-back" size={19} color="#333333" />
           </TouchableOpacity>
 
           <Text style={styles.title}>
@@ -133,10 +125,7 @@ const styles = StyleSheet.create({
     fontSize: 50,
     fontFamily: 'PlusJakartaSans-Bold',
     textAlign: 'center',
-
     color: '#333333',
-    marginLeft:36,
-    marginRight:37,
   },
   greenText: {
     color: '#20C997',

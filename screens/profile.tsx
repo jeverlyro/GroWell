@@ -82,7 +82,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.menuSection}>
           <TouchableOpacity 
             style={styles.menuItem}
-            onPress={() => navigation.navigate('GrowthHistoryScreen')}
+            onPress={() => navigation.navigate('GrowthTracker')}
           >
             <View style={styles.menuIconContainer}>
               <MaterialIcons name="history" size={22} color="#20C997" />
@@ -104,7 +104,7 @@ const ProfileScreen = ({ navigation }) => {
           
           <TouchableOpacity 
             style={styles.menuItem}
-            onPress={() => navigation.navigate('HelpSupportScreen')}
+            onPress={() => navigation.navigate('HelpAndSupportScreen')}
           >
             <View style={styles.menuIconContainer}>
               <MaterialIcons name="help" size={22} color="#20C997" />

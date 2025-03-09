@@ -219,7 +219,7 @@ const ChatbotScreen = ({ navigation }) => {
         const userId = await AsyncStorage.getItem('userId');
         
         // Send message to backend with userId
-        const response = await axios.post("http://192.168.217.219:3001/chat", {
+        const response = await axios.post("http://192.168.18.231:3001/chat", {
           message: inputText,
           userId: userId || currentChatId // Use currentChatId as fallback
         });
@@ -320,10 +320,9 @@ const ChatbotScreen = ({ navigation }) => {
     // In a real app, you might want to update these based on conversation context
     // or fetch from an API
     const defaultRecommendations = [
-      "What foods can help improve my sleep?",
-      "How can I reduce stress naturally?",
-      "What exercises are best for beginners?",
-      "How much water should I drink daily?",
+      "What foods can help improve my child growth ?",
+      "What exercises are best for children?",
+      "How much water should my child drink daily?",
       "What are signs of vitamin deficiency?",
     ];
     
@@ -345,20 +344,20 @@ const ChatbotScreen = ({ navigation }) => {
             style={styles.headerButton}
             onPress={() => setHistoryModalVisible(true)}
           >
-            <Ionicons name="time-outline" size={19} color={COLORS.dark} />
+            <Ionicons name="time-outline" size={17} color={COLORS.dark} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={createNewChat}
           >
-            <Ionicons name="add" size={19} color={COLORS.dark} />
+            <Ionicons name="add" size={20} color={COLORS.dark} />
           </TouchableOpacity>
           {messages.length > 0 && (
             <TouchableOpacity
               style={styles.headerButton}
               onPress={deleteCurrentChat}
             >
-              <Ionicons name="trash-outline" size={19} color={COLORS.dark} />
+              <Ionicons name="trash-outline" size={16} color={COLORS.dark} />
             </TouchableOpacity>
           )}
         </View>

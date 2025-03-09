@@ -13,10 +13,15 @@ import GetStartedScreen from './screens/getstarted';
 import HomeScreen from './screens/homescreen';
 import ProfileScreen from './screens/profile'; 
 import EducationalContentScreen from './screens/educationalcontent';
-import CommunityScreen from './screens/community';
+import AddChildScreen from "./screens/profiles/addchildscreen";
 import RemindersPage from './screens/reminder';
 import CreatePassword from './screens/createpassword';
 import SignIn from './screens/signin';
+import NewPassword from './screens/newpassword';
+import SavedArticlesScreen from "./screens/profiles/savedArticles";
+import HelpAndSupportScreen from "./screens/profiles/helpAndSupport";
+import AboutScreen from "./screens/profiles/aboutScreen";
+import PrivacySettingsScreen from "./screens/settings/PrivacySetting";
 
 // Import feature screens
 import StuntingCalculatorScreen from './screens/stuntingcalculator';
@@ -32,6 +37,8 @@ import LanguageSettings from "./screens/settings/LanguageSettings";
 import NotificationSettings from "./screens/settings/NotificationSettings";
 import EmailConfirmationScreen from "./screens/emailverif";
 import ChatbotScreen from "./screens/chatbot";
+import DataExportScreen from "./screens/settings/DataExportScreen";
+import DeleteAccountScreen from "./screens/settings/DeleteAccountScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -71,7 +78,7 @@ function MainTabs() {
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontFamily: 'PlusJakartaSans-Bold',
+          fontFamily: 'PlusJakartaSans-Medium',
         },
         lazy: true, 
         animationEnabled: true,
@@ -146,10 +153,7 @@ function AppContent() {
           <Stack.Screen name="Home" component={MainTabs} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="EducationalContent" component={EducationalContentScreen} />
-          <Stack.Screen name="Community" component={CommunityScreen} />
 
-          <Stack.Screen name="SignIn" component={SignIn} />
-          <Stack.Screen name="CreatePassword" component={CreatePassword} />
           <Stack.Screen name="MainApp" component={MainTabs} />
           <Stack.Screen name="StuntingCalculator" component={StuntingCalculatorScreen} />
           <Stack.Screen name="NutritionPlan" component={NutritionPlanScreen} />
@@ -162,6 +166,14 @@ function AppContent() {
           <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
           <Stack.Screen name="LanguageSettings" component={LanguageSettings} />
           <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen}/>
+
+          <Stack.Screen name="AddChildScreen" component={AddChildScreen} />
+          <Stack.Screen name="SavedArticlesScreen" component={SavedArticlesScreen} />
+          <Stack.Screen name="HelpAndSupportScreen" component={HelpAndSupportScreen} />
+          <Stack.Screen name="AboutScreen" component={AboutScreen} />
+          <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+          <Stack.Screen name="DataExportScreen" component={DataExportScreen} />
+          <Stack.Screen name="DeleteAccountScreen" component={DeleteAccountScreen} />
         </Stack.Navigator> 
       </NavigationContainer>
     </SafeAreaProvider>
