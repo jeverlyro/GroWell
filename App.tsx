@@ -7,15 +7,16 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
 
 // Import screens
-import SplashScreen from "./screens/splashscreen";
-import OnboardingScreen from "./screens/onboarding";
-import GetStartedScreen from "./screens/getstarted";
-import HomeScreen from "./screens/homescreen";
-import ProfileScreen from "./screens/profile";
-import EducationalContentScreen from "./screens/educationalcontent";
-import RemindersPage from "./screens/reminder";
-import CreatePassword from "./screens/createpassword";
-import SignIn from "./screens/signin";
+import SplashScreen from './screens/splashscreen';
+import OnboardingScreen from './screens/onboarding';
+import GetStartedScreen from './screens/getstarted';
+import HomeScreen from './screens/homescreen';
+import ProfileScreen from './screens/profile'; 
+import EducationalContentScreen from './screens/educationalcontent';
+import CommunityScreen from './screens/community';
+import RemindersPage from './screens/reminder';
+import CreatePassword from './screens/createpassword';
+import SignIn from './screens/signin';
 
 // Import feature screens
 import StuntingCalculatorScreen from './screens/stuntingcalculator';
@@ -138,6 +139,15 @@ function AppContent() {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="GetStarted" component={GetStartedScreen} />
+          <Stack.Screen name="SignIn" component={SignIn}/>
+          <Stack.Screen name="CreatePassword" component={CreatePassword}/>
+
+          <Stack.Screen name="NewPassword" component={NewPassword}/>
+          <Stack.Screen name="Home" component={MainTabs} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="EducationalContent" component={EducationalContentScreen} />
+          <Stack.Screen name="Community" component={CommunityScreen} />
+
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="CreatePassword" component={CreatePassword} />
           <Stack.Screen name="MainApp" component={MainTabs} />
