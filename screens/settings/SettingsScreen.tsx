@@ -65,17 +65,6 @@ const SettingsScreen = ({ navigation }) => {
             <Text style={styles.settingItemText}>Language</Text>
             <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={() => navigation.navigate('AppearanceSettings')}
-          >
-            <View style={styles.settingIconContainer}>
-              <MaterialIcons name="invert-colors" size={22} color="#20C997" />
-            </View>
-            <Text style={styles.settingItemText}>Appearance</Text>
-            <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
-          </TouchableOpacity>
         </View>
         
         <View style={styles.settingsSection}>

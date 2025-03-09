@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform 
 } from 'react-native';
 import { Button } from '../components/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const EmailConfirmationScreen: React.FC = ({ navigation }) => {
+type RootStackParamList = {
+  EmailConfirmation: undefined;
+  CreatePassword: undefined;
+};
+
+type EmailConfirmationScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, 'EmailConfirmation'>;
+};
+
+const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = ({ navigation }) => {
   const [otp, setOtp] = useState<string>('');
+  const inputRefs = useRef<Array<TextInput | null>>([]);
 
   const [fontsLoaded] = useFonts({
     'PlusJakartaSans-Regular': require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
@@ -23,8 +34,16 @@ const EmailConfirmationScreen: React.FC = ({ navigation }) => {
     );
   }
 
-  const handleOtpChange = (code: string) => {
-    setOtp(code);
+  const handleOtpChange = (text: string, index: number) => {
+    const newOtp = otp.split('');
+    newOtp[index] = text;
+    const updatedOtp = newOtp.join('');
+    setOtp(updatedOtp);
+
+    // Move to next input if current input is filled
+    if (text && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
 
   const handleSubmit = () => {
@@ -43,32 +62,33 @@ const EmailConfirmationScreen: React.FC = ({ navigation }) => {
         <View style={styles.innerContainer}>
           <Text style={styles.title}>Email Confirmation</Text>
           <Text style={styles.subtitle}>
-            We’ve sent you a confirmation code to your email to </Text>
-            <Text style={styles.subtitle1}>complete the verification process.
-            </Text>
+            We've sent you a confirmation code to your email to complete the verification process.
+          </Text>
 
           <View style={styles.otpContainer}>
             {[...Array(6)].map((_, index) => (
               <TextInput
                 key={index}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref;
+                }}
                 style={styles.otpInput}
                 keyboardType="number-pad"
                 maxLength={1}
-                onChangeText={(text) => {
-                  let newOtp = otp.split('');
-                  newOtp[index] = text;
-                  setOtp(newOtp.join(''));
-                }}
+                onChangeText={(text) => handleOtpChange(text, index)}
                 value={otp[index] || ''}
+                onKeyPress={({ nativeEvent }) => {
+                  if (nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+                    inputRefs.current[index - 1]?.focus();
+                  }
+                }}
               />
             ))}
           </View>
 
-          <TouchableOpacity>
             <Text style={styles.resendText}>
-              Didn’t receive any code? <Text style={styles.resendLink}>Send again.</Text>
+              Didn't receive any code? <TouchableOpacity><Text style={styles.resendLink}>Send again.</Text></TouchableOpacity>
             </Text>
-          </TouchableOpacity >
           
           <Button title="Submit" onPress={handleSubmit} disabled={otp.length !== 6} style={styles.button} />
         </View>
@@ -98,7 +118,7 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 120,
     fontSize: 32,
-    fontFamily: 'PlusJakartaSans-Bold',
+    fontFamily: 'Inter-SemiBold',
     color: '#000000',
   },
   subtitle: {
@@ -107,13 +127,6 @@ const styles = StyleSheet.create({
     color: '#202020',
     textAlign: 'center',
     marginVertical: 20,
-  },
-  subtitle1: {
-    fontSize: 12,
-    fontFamily: 'PlusJakartaSans-Medium',
-    color: '#202020',
-    textAlign: 'center',
-    marginTop:-25,
   },
   otpContainer: {
     flexDirection: 'row',
@@ -136,7 +149,6 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-Medium',
     color: '#666666',
     marginBottom: 64,
-    
   },
   resendLink: {
     color: '#16C47F',

@@ -104,6 +104,7 @@ const GetStartedScreen = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    
   );
 };
 
@@ -185,6 +186,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     fontFamily: 'PlusJakartaSans-Regular',
+  },
+  contactText: {
+    color: '#16C47F',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
 });
 
