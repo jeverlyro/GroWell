@@ -47,7 +47,7 @@ const GetStartedScreen = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={19} color="#333333" />
+            <MaterialIcons name="arrow-back" size={30} color="#333333" marginLeft={30} />
           </TouchableOpacity>
 
           <Text style={styles.title}>
@@ -89,8 +89,9 @@ const GetStartedScreen = ({ navigation }) => {
             />
 
             <Text style={styles.termsText}>
-              By signing up, you agree to our Terms & 
-              <Text style={styles.greenText}> Privacy Policy</Text>
+            By signing up, you’ve already read and agree to the 
+              <Text style={styles.greenText}> terms &</Text>
+              <Text style={styles.greenText}> condition</Text><Text style={styles.termsText}> from GroWell team. </Text>
             </Text>
 
             <View style={styles.loginContainer}>
@@ -129,11 +130,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   title: {
-    fontSize: 48,
+    fontSize: 50,
     fontFamily: 'PlusJakartaSans-Bold',
     textAlign: 'center',
-    marginVertical: 20,
+
     color: '#333333',
+    marginLeft:36,
+    marginRight:37,
   },
   greenText: {
     color: '#20C997',

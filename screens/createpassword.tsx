@@ -58,7 +58,7 @@ const CreatePasswordScreen: React.FC = ({ navigation }) => {
           </View>
           
           <Text style={styles.subtitle}>Your email is verified, now let's make a password for your account safety.</Text>
-
+          
           <View style={styles.formContainer}>
             <Text style={styles.label}>Password</Text>
             <TextInput
