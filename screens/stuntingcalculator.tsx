@@ -532,7 +532,7 @@ const StuntingCalculatorScreen = ({ navigation }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="chevron-back" size={24} color={COLORS.dark} />
+          <Ionicons name="arrow-back" size={19} color={COLORS.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Growth Assessment</Text>
         <View style={styles.placeholder} />

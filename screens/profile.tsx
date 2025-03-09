@@ -1,16 +1,31 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const ProfileScreen = ({ navigation }) => {
+  const handleEditProfile = () => {
+    navigation.navigate('AccountSettings');
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", onPress: () => navigation.navigate('SignIn') }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
         <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
-          <Ionicons name="settings-outline" size={20} color="#333333" />
+          <Ionicons name="settings-outline" size={19} color="#333333" />
         </TouchableOpacity>
       </View>
 
@@ -22,7 +37,7 @@ const ProfileScreen = ({ navigation }) => {
           />
           <Text style={styles.profileName}>GroWell</Text>
           <Text style={styles.profileEmail}>growell.team@example.com</Text>
-          <TouchableOpacity style={styles.editProfileButton}>
+          <TouchableOpacity style={styles.editProfileButton} onPress={handleEditProfile}>
             <Text style={styles.editProfileText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
@@ -55,14 +70,20 @@ const ProfileScreen = ({ navigation }) => {
             </View>
           </View>
           
-          <TouchableOpacity style={styles.addChildButton}>
+          <TouchableOpacity 
+            style={styles.addChildButton}
+            onPress={() => navigation.navigate('AddChildScreen')}
+          >
             <MaterialIcons name="add-circle-outline" size={20} color="#20C997" />
             <Text style={styles.addChildText}>Add Another Child</Text>
           </TouchableOpacity>
         </View>
         
         <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('GrowthHistoryScreen')}
+          >
             <View style={styles.menuIconContainer}>
               <MaterialIcons name="history" size={22} color="#20C997" />
             </View>
@@ -70,7 +91,10 @@ const ProfileScreen = ({ navigation }) => {
             <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('SavedArticlesScreen')}
+          >
             <View style={styles.menuIconContainer}>
               <MaterialIcons name="favorite" size={22} color="#20C997" />
             </View>
@@ -78,7 +102,10 @@ const ProfileScreen = ({ navigation }) => {
             <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('HelpSupportScreen')}
+          >
             <View style={styles.menuIconContainer}>
               <MaterialIcons name="help" size={22} color="#20C997" />
             </View>
@@ -86,7 +113,10 @@ const ProfileScreen = ({ navigation }) => {
             <MaterialIcons name="chevron-right" size={22} color="#CCCCCC" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('AboutScreen')}
+          >
             <View style={styles.menuIconContainer}>
               <MaterialIcons name="info" size={22} color="#20C997" />
             </View>
@@ -95,7 +125,7 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={20} color="#FF6B6B" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

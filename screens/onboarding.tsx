@@ -41,15 +41,6 @@ const OnboardingScreen = ({ navigation }) => {
   // For animation we need to explicitly set useNativeDriver to false
   const scrollX = useRef(new Animated.Value(0)).current;
   
-  // Show loading screen until fonts are loaded
-  if (!fontsLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading fonts...</Text>
-      </View>
-    );
-  }
-  
   const handleNext = () => {
     if (currentIndex < onboardingData.length - 1) {
       flatListRef.current.scrollToIndex({ index: currentIndex + 1 });

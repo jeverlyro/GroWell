@@ -1,9 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const EducationalContentScreen = () => {
+  // Add state for search and filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  
+  const categories = ['All', 'Development', 'Nutrition', 'Health'];
+
   const articles = [
     {
       id: '1',
@@ -43,6 +49,13 @@ const EducationalContentScreen = () => {
     }
   ];
 
+  // Filter articles based on search and category
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategory === 'All' || article.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   const renderArticleCard = (article) => (
     <TouchableOpacity key={article.id} style={styles.articleCard}>
       <Image source={article.image} style={styles.articleImage} />
@@ -74,6 +87,47 @@ const EducationalContentScreen = () => {
       </View>
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <MaterialIcons name="search" size={24} color="#AAAAAA" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for topics..."
+            placeholderTextColor="#AAAAAA"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        
+        {/* Category Filter Pills */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.categoriesContainer}
+          contentContainerStyle={styles.categoriesContent}
+        >
+          {categories.map(category => (
+            <TouchableOpacity 
+              key={category} 
+              style={[
+                styles.categoryPill, 
+                activeCategory === category && styles.activeCategoryPill
+              ]}
+              onPress={() => setActiveCategory(category)}
+            >
+              <Text 
+                style={[
+                  styles.categoryText, 
+                  activeCategory === category && styles.activeCategoryText
+                ]}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        
+        {/* Articles Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Featured Articles</Text>
@@ -82,9 +136,17 @@ const EducationalContentScreen = () => {
             </TouchableOpacity>
           </View>
           
-          {articles.map(article => renderArticleCard(article))}
+          {filteredArticles.length > 0 ? (
+            filteredArticles.map(article => renderArticleCard(article))
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <MaterialIcons name="search-off" size={48} color="#CCCCCC" />
+              <Text style={styles.emptyStateText}>No articles found</Text>
+            </View>
+          )}
         </View>
         
+        {/* Videos Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Educational Videos</Text>
@@ -97,8 +159,25 @@ const EducationalContentScreen = () => {
             {videos.map(video => renderVideoCard(video))}
           </ScrollView>
         </View>
+        
+        {/* New Section: Quick Tips */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Quick Tips</Text>
+          </View>
+          <View style={styles.tipCard}>
+            <View style={styles.tipIconContainer}>
+              <MaterialIcons name="lightbulb" size={28} color="#FFFFFF" />
+            </View>
+            <View style={styles.tipContent}>
+              <Text style={styles.tipTitle}>Tip of the Day</Text>
+              <Text style={styles.tipText}>
+                Include colorful vegetables in every meal to ensure your child gets essential nutrients.
+              </Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
-      
     </SafeAreaView>
   );
 };
@@ -124,6 +203,50 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    paddingHorizontal: 10,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Regular',
+    color: '#333333',
+  },
+  categoriesContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  categoriesContent: {
+    alignItems: 'center',
+  },
+  categoryPill: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    marginRight: 10,
+  },
+  activeCategoryPill: {
+    backgroundColor: '#20C997',
+  },
+  categoryText: {
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans-Medium',
+    color: '#666666',
+  },
+  activeCategoryText: {
+    color: '#FFFFFF',
   },
   section: {
     padding: 20,
@@ -181,6 +304,16 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-Regular',
     color: '#666666',
   },
+  emptyStateContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Regular',
+    color: '#CCCCCC',
+    marginTop: 10,
+  },
   videosContainer: {
     flexDirection: 'row',
     paddingBottom: 10,
@@ -221,7 +354,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'PlusJakartaSans-Regular',
     color: '#666666',
-  }
+  },
+  tipCard: {
+    flexDirection: 'row',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    overflow: 'hidden',
+    padding: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  tipIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#20C997',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  tipContent: {
+    flex: 1,
+  },
+  tipTitle: {
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Bold',
+    color: '#333333',
+    marginBottom: 5,
+  },
+  tipText: {
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans-Regular',
+    color: '#666666',
+  },
 });
 
 export default EducationalContentScreen;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
 
 const NutritionPlanScreen = ({ navigation }) => {
@@ -331,7 +331,7 @@ const NutritionPlanScreen = ({ navigation }) => {
           style={styles.menuButton}
           onPress={() => setShowCustomizeModal(true)}
         >
-          <MaterialIcons name="settings" size={24} color="#333333" />
+          <Ionicons name="settings-outline" size={19} color="#333333" />
         </TouchableOpacity>
       </View>
       

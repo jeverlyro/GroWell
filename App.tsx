@@ -131,17 +131,21 @@ function AppContent() {
             detachPreviousScreen: true,
           }}
         >
+          {/* Auth flow screens */}
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="GetStarted" component={GetStartedScreen} />
           <Stack.Screen name="SignIn" component={SignIn}/>
           <Stack.Screen name="CreatePassword" component={CreatePassword}/>
+          
+          {/* Main app screens */}
           <Stack.Screen name="MainApp" component={MainTabs} />
           <Stack.Screen name="StuntingCalculator" component={StuntingCalculatorScreen} />
           <Stack.Screen name="NutritionPlan" component={NutritionPlanScreen} />
           <Stack.Screen name="AddReminder" component={AddReminderScreen}/>
           <Stack.Screen name="GrowthTracker" component={GrowthTrackerScreen}/>
           
+          {/* Settings screens */}
           <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
           <Stack.Screen name="AccountSettings" component={AccountSettings} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
