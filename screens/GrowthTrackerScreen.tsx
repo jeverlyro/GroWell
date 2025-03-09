@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { 
   View, 
   Text, 
@@ -16,6 +16,21 @@ import { Dimensions } from 'react-native';
 
 // Start with empty growth data
 const initialGrowthData = [];
+
+// Create a memoized input component to prevent unnecessary re-renders
+const MemoizedInput = memo(({ label, value, onChangeText, placeholder, keyboardType }) => (
+  <View style={styles.inputGroup}>
+    <Text style={styles.inputLabel}>{label}</Text>
+    <TextInput
+      style={styles.input}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      keyboardType={keyboardType}
+      maxLength={6} // Limit input length for better performance
+    />
+  </View>
+));
 
 const GrowthTrackerScreen = ({ navigation }) => {
   const [growthData, setGrowthData] = useState(initialGrowthData);
@@ -185,6 +200,74 @@ const GrowthTrackerScreen = ({ navigation }) => {
     );
   };
 
+  // Use useCallback to prevent recreating these functions on every render
+  const handleHeightChange = useCallback((text) => {
+    setNewHeight(text);
+  }, []);
+
+  const handleWeightChange = useCallback((text) => {
+    setNewWeight(text);
+  }, []);
+
+  const handleAgeChange = useCallback((text) => {
+    setNewAge(text);
+  }, []);
+
+  // Create a memoized modal component
+  const GrowthDataModal = useCallback(() => (
+    <Modal
+      animationType="none"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Add New Growth Data</Text>
+          
+          <MemoizedInput
+            label="Height (cm)"
+            value={newHeight}
+            onChangeText={handleHeightChange}
+            placeholder="Enter height in cm"
+            keyboardType="numeric"
+          />
+          
+          <MemoizedInput
+            label="Weight (kg)"
+            value={newWeight}
+            onChangeText={handleWeightChange}
+            placeholder="Enter weight in kg"
+            keyboardType="numeric" 
+          />
+          
+          <MemoizedInput
+            label="Age (months)"
+            value={newAge}
+            onChangeText={handleAgeChange}
+            placeholder="Enter age in months"
+            keyboardType="numeric"
+          />
+          
+          <View style={styles.modalButtons}>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.saveButton]}
+              onPress={addNewGrowthData}
+            >
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  ), [modalVisible, newHeight, newWeight, newAge, handleHeightChange, handleWeightChange, handleAgeChange]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -212,67 +295,7 @@ const GrowthTrackerScreen = ({ navigation }) => {
         <MaterialIcons name="add" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Modal for adding new data - animation removed */}
-      <Modal
-        animationType="none"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add New Growth Data</Text>
-            
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Height (cm)</Text>
-              <TextInput
-                style={styles.input}
-                value={newHeight}
-                onChangeText={setNewHeight}
-                placeholder="Enter height in cm"
-                keyboardType="numeric"
-              />
-            </View>
-            
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Weight (kg)</Text>
-              <TextInput
-                style={styles.input}
-                value={newWeight}
-                onChangeText={setNewWeight}
-                placeholder="Enter weight in kg"
-                keyboardType="numeric"
-              />
-            </View>
-            
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Age (months)</Text>
-              <TextInput
-                style={styles.input}
-                value={newAge}
-                onChangeText={setNewAge}
-                placeholder="Enter age in months"
-                keyboardType="numeric"
-              />
-            </View>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={addNewGrowthData}
-              >
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <GrowthDataModal />
     </SafeAreaView>
   );
 };
@@ -437,6 +460,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
+    fontFamily: 'PlusJakartaSans-Regular',
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,

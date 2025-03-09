@@ -1,66 +1,71 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  Image, 
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
   Dimensions,
-  FlatList,
-  Animated
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-// Add Material Icons import
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+  Animated,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 // Image carousel data
 const carouselData = [
   {
-    id: '1',
-    image: require('../assets/logo.png'),
-    title: 'Healthy Eating Habits',
-    description: 'Start early with nutritious foods'
+    id: "1",
+    image: require("../assets/logo.png"),
+    title: "Healthy Eating Habits",
+    description: "Start early with nutritious foods",
   },
   {
-    id: '2',
-    image: require('../assets/logo.png'),
-    title: 'Track Growth Milestones',
-    description: 'Regular monitoring prevents stunting'
+    id: "2",
+    image: require("../assets/logo.png"),
+    title: "Track Growth Milestones",
+    description: "Regular monitoring prevents stunting",
   },
   {
-    id: '3',
-    image: require('../assets/logo.png'),
-    title: 'Balanced Nutrition',
-    description: 'Essential nutrients for development'
+    id: "3",
+    image: require("../assets/logo.png"),
+    title: "Balanced Nutrition",
+    description: "Essential nutrients for development",
   },
 ];
 
 // Feature cards data - updated to use Material icons
 const features = [
   {
-    id: '1',
-    title: 'Stunting Risk Calculator',
-    description: 'AI-based analysis to detect early signs of stunting',
-    icon: 'calculate', // Material icon name
-    screen: 'StuntingCalculator',
-    color: '#E3F8F1',
+    id: "1",
+    title: "Stunting Risk Calculator",
+    description: "AI-based analysis to detect early signs of stunting",
+    icon: "calculate", // Material icon name
+    screen: "StuntingCalculator",
+    color: "#E3F8F1",
   },
   {
-    id: '2',
-    title: 'Personalized Nutrition Plans',
-    description: 'Meal recommendations based on age and health data',
-    icon: 'restaurant', // Material icon name
-    screen: 'NutritionPlan',
-    color: '#FFF3E0',
+    id: "2",
+    title: "Personalized Nutrition Plans",
+    description: "Meal recommendations based on age and health data",
+    icon: "restaurant", // Material icon name
+    screen: "NutritionPlan",
+    color: "#FFF3E0",
   },
 ];
 
 const FeatureCard = ({ title, description, icon, color, onPress }) => {
   return (
-    <TouchableOpacity style={[styles.card, { backgroundColor: color }]} onPress={onPress}>
-      <MaterialIcons name={icon} size={40} color="#20C997" style={styles.cardIcon} />
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: color }]}
+      onPress={onPress}
+    >
+      <MaterialIcons
+        name={icon}
+        size={40}
+        color="#20C997"
+        style={styles.cardIcon}
+      />
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardDescription}>{description}</Text>
@@ -84,42 +89,42 @@ const CarouselItem = ({ item }) => {
 const CarouselPagination = ({ data, activeIndex, scrollX }) => {
   const inputRange = [-1, 0, 1];
   const dotSize = 8;
-  
+
   return (
     <View style={styles.paginationContainer}>
       {data.map((_, index) => {
         // Create animation for each dot
         const width = scrollX.interpolate({
           inputRange: [
-            (index - 1) * (Dimensions.get('window').width - 40),
-            index * (Dimensions.get('window').width - 40),
-            (index + 1) * (Dimensions.get('window').width - 40)
+            (index - 1) * (Dimensions.get("window").width - 40),
+            index * (Dimensions.get("window").width - 40),
+            (index + 1) * (Dimensions.get("window").width - 40),
           ],
           outputRange: [dotSize, dotSize * 1.5, dotSize],
-          extrapolate: 'clamp'
+          extrapolate: "clamp",
         });
-        
+
         const opacity = scrollX.interpolate({
           inputRange: [
-            (index - 1) * (Dimensions.get('window').width - 40),
-            index * (Dimensions.get('window').width - 40),
-            (index + 1) * (Dimensions.get('window').width - 40)
+            (index - 1) * (Dimensions.get("window").width - 40),
+            index * (Dimensions.get("window").width - 40),
+            (index + 1) * (Dimensions.get("window").width - 40),
           ],
           outputRange: [0.5, 1, 0.5],
-          extrapolate: 'clamp'
+          extrapolate: "clamp",
         });
-        
+
         return (
           <Animated.View
             key={index}
             style={[
               styles.paginationDot,
-              { 
+              {
                 width,
                 height: dotSize,
                 opacity,
-                backgroundColor: index === activeIndex ? '#20C997' : '#D1D1D1'
-              }
+                backgroundColor: index === activeIndex ? "#20C997" : "#D1D1D1",
+              },
             ]}
           />
         );
@@ -130,16 +135,16 @@ const CarouselPagination = ({ data, activeIndex, scrollX }) => {
 
 const HomeScreen = ({ navigation }) => {
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
-  const windowWidth = Dimensions.get('window').width;
+  const windowWidth = Dimensions.get("window").width;
   const scrollX = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef(null);
-  
+
   // Auto-scrolling functionality
   useEffect(() => {
     const timer = setInterval(() => {
       // Calculate next index
       const nextIndex = (activeCarouselIndex + 1) % carouselData.length;
-      
+
       // Scroll to next item
       if (flatListRef.current) {
         try {
@@ -147,7 +152,7 @@ const HomeScreen = ({ navigation }) => {
             index: nextIndex,
             animated: true,
             viewOffset: 0,
-            viewPosition: 0
+            viewPosition: 0,
           });
         } catch (error) {
           console.log("Scroll error:", error);
@@ -159,37 +164,47 @@ const HomeScreen = ({ navigation }) => {
         // If ref isn't ready yet, just update the index
         setActiveCarouselIndex(nextIndex);
       }
-    }, 4000);  // Auto scroll every 4 seconds
-    
+    }, 4000); // Auto scroll every 4 seconds
+
     return () => clearInterval(timer);
   }, [activeCarouselIndex]);
-  
+
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <Text style={styles.headerTitle}>GroWell</Text>
-            <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('MainApp', { screen: 'ProfileTab' })}>
-              <Image 
-                source={require('../assets/profile-placeholder.png')} 
-                style={styles.profileIcon} 
+            <TouchableOpacity
+              style={styles.profileButton}
+              onPress={() =>
+                navigation.navigate("MainApp", { screen: "ProfileTab" })
+              }
+            >
+              <Image
+                source={require("../assets/profile-placeholder.png")}
+                style={styles.profileIcon}
               />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Hello, Parent!</Text>
-            <Text style={styles.welcomeSubtitle}>Track your child's growth and health</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Track your child's growth and health
+            </Text>
           </View>
-          
+
           {/* Carousel/Image Slider */}
           <View style={styles.carouselContainer}>
             <Animated.FlatList
               ref={flatListRef}
               data={carouselData}
               renderItem={({ item }) => <CarouselItem item={item} />}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
               pagingEnabled
@@ -208,16 +223,16 @@ const HomeScreen = ({ navigation }) => {
               )}
               scrollEventThrottle={16}
             />
-            <CarouselPagination 
-              data={carouselData} 
+            <CarouselPagination
+              data={carouselData}
               activeIndex={activeCarouselIndex}
-              scrollX={scrollX} 
+              scrollX={scrollX}
             />
           </View>
-          
+
           <View style={styles.featuresContainer}>
             <Text style={styles.sectionTitle}>Core Features</Text>
-            
+
             {features.map((feature) => (
               <FeatureCard
                 key={feature.id}
@@ -229,32 +244,41 @@ const HomeScreen = ({ navigation }) => {
               />
             ))}
           </View>
-          
+
           <View style={styles.growthTrackerSection}>
             <Text style={styles.sectionTitle}>Recent Growth Data</Text>
             <View style={styles.growthCard}>
-              <Text style={styles.growthCardTitle}>Track your child's growth</Text>
-              <Text style={styles.growthCardDescription}>
-                Regularly record height, weight, and milestones to monitor progress
+              <Text style={styles.growthCardTitle}>
+                Track your child's growth
               </Text>
-              <TouchableOpacity 
+              <Text style={styles.growthCardDescription}>
+                Regularly record height, weight, and milestones to monitor
+                progress
+              </Text>
+              <TouchableOpacity
                 style={styles.addDataButton}
-                onPress={() => navigation.navigate('GrowthTracker')}
+                onPress={() => navigation.navigate("GrowthTracker")}
               >
                 <Text style={styles.addDataButtonText}>Add New Data</Text>
               </TouchableOpacity>
             </View>
           </View>
-          
+
           {/* Quick Tips Section - Updated with Material Icons */}
           <View style={styles.tipsSection}>
             <Text style={styles.sectionTitle}>Quick Tips</Text>
             <View style={styles.tipCard}>
-              <MaterialIcons name="lightbulb" size={40} color="#20C997" style={styles.tipIcon} />
+              <MaterialIcons
+                name="lightbulb"
+                size={40}
+                color="#20C997"
+                style={styles.tipIcon}
+              />
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Tip of the Day</Text>
                 <Text style={styles.tipText}>
-                  Include protein in every meal to support your child's muscle development.
+                  Include protein in every meal to support your child's muscle
+                  development.
                 </Text>
               </View>
             </View>
@@ -269,31 +293,31 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   headerTitle: {
     fontSize: 24,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: '#20C997',
+    fontFamily: "PlusJakartaSans-Bold",
+    color: "#20C997",
   },
   profileButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   profileIcon: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   scrollView: {
     flex: 1,
@@ -303,63 +327,63 @@ const styles = StyleSheet.create({
   },
   welcomeTitle: {
     fontSize: 26,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: '#333333',
+    fontFamily: "PlusJakartaSans-Bold",
+    color: "#333333",
   },
   welcomeSubtitle: {
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans-Regular',
-    color: '#666666',
+    fontFamily: "PlusJakartaSans-Regular",
+    color: "#666666",
     marginTop: 5,
   },
-  
+
   // Carousel Styles
   carouselContainer: {
     marginVertical: 10,
     paddingHorizontal: 20,
   },
   carouselItem: {
-    width: Dimensions.get('window').width - 40,
+    width: Dimensions.get("window").width - 40,
     height: 180,
     borderRadius: 15,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginRight: 20,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
   carouselImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    width: "100%",
+    height: "100%",
+    position: "absolute",
   },
   carouselTextContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: "rgba(0,0,0,0.4)",
     padding: 15,
   },
   carouselTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontFamily: 'PlusJakartaSans-Bold',
+    fontFamily: "PlusJakartaSans-Bold",
     marginBottom: 4,
   },
   carouselDescription: {
-    color: 'white',
+    color: "white",
     fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Regular',
+    fontFamily: "PlusJakartaSans-Regular",
   },
   paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 10,
   },
   paginationDot: {
     borderRadius: 4,
     marginHorizontal: 4,
   },
-  
+
   featuresContainer: {
     padding: 20,
   },
@@ -368,18 +392,18 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: '#333333',
+    fontFamily: "PlusJakartaSans-Bold",
+    color: "#333333",
     marginBottom: 15,
   },
   card: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 15,
     borderRadius: 12,
     marginBottom: 15,
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E0E0E0',
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E0E0E0",
   },
   cardIcon: {
     marginRight: 15,
@@ -389,54 +413,54 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: '#333333',
+    fontFamily: "PlusJakartaSans-Bold",
+    color: "#333333",
     marginBottom: 5,
   },
   cardDescription: {
     fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Regular',
-    color: '#666666',
+    fontFamily: "PlusJakartaSans-Regular",
+    color: "#666666",
   },
   growthCard: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderRadius: 12,
     padding: 20,
   },
   growthCardTitle: {
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: '#333333',
+    fontFamily: "PlusJakartaSans-Bold",
+    color: "#333333",
     marginBottom: 10,
   },
   growthCardDescription: {
     fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Regular',
-    color: '#666666',
+    fontFamily: "PlusJakartaSans-Regular",
+    color: "#666666",
     marginBottom: 15,
   },
   addDataButton: {
-    backgroundColor: '#20C997',
+    backgroundColor: "#20C997",
     borderRadius: 8,
     paddingVertical: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   addDataButtonText: {
-    color: 'white',
-    fontFamily: 'PlusJakartaSans-SemiBold',
+    color: "white",
+    fontFamily: "PlusJakartaSans-SemiBold",
     fontSize: 14,
   },
-  
+
   // Quick Tips Section
   tipsSection: {
     padding: 20,
   },
   tipCard: {
-    flexDirection: 'row',
-    backgroundColor: '#E3F8F1',
+    flexDirection: "row",
+    backgroundColor: "#E3F8F1",
     borderRadius: 12,
     padding: 15,
-    alignItems: 'center',
+    alignItems: "center",
   },
   tipIcon: {
     marginRight: 15,
@@ -446,25 +470,25 @@ const styles = StyleSheet.create({
   },
   tipTitle: {
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: '#333333',
+    fontFamily: "PlusJakartaSans-Bold",
+    color: "#333333",
     marginBottom: 5,
   },
   tipText: {
     fontSize: 14,
-    fontFamily: 'PlusJakartaSans-Regular',
-    color: '#555555',
+    fontFamily: "PlusJakartaSans-Regular",
+    color: "#555555",
   },
   title: {
-    color: '#333333',
+    color: "#333333",
     fontSize: 24,
-    fontFamily: 'PlusJakartaSans-Bold',
+    fontFamily: "PlusJakartaSans-Bold",
   },
   subtitle: {
-    color: '#666666',
+    color: "#666666",
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans-Medium',
-  }
+    fontFamily: "PlusJakartaSans-Medium",
+  },
 });
 
 export default HomeScreen;

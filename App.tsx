@@ -1,22 +1,21 @@
-import React, { useRef, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialIcons } from '@expo/vector-icons';
+import React, { useRef, useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { StatusBar } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { MaterialIcons } from "@expo/vector-icons";
 
 // Import screens
-import SplashScreen from './screens/splashscreen';
-import OnboardingScreen from './screens/onboarding';
-import GetStartedScreen from './screens/getstarted';
-import HomeScreen from './screens/homescreen';
-import ProfileScreen from './screens/profile'; 
-import EducationalContentScreen from './screens/educationalcontent';
-import CommunityScreen from './screens/community';
-import RemindersPage from './screens/reminder';
-import CreatePassword from './screens/createpassword';
-import SignIn from './screens/signin';
+import SplashScreen from "./screens/splashscreen";
+import OnboardingScreen from "./screens/onboarding";
+import GetStartedScreen from "./screens/getstarted";
+import HomeScreen from "./screens/homescreen";
+import ProfileScreen from "./screens/profile";
+import EducationalContentScreen from "./screens/educationalcontent";
+import RemindersPage from "./screens/reminder";
+import CreatePassword from "./screens/createpassword";
+import SignIn from "./screens/signin";
 
 // Import feature screens
 import StuntingCalculatorScreen from './screens/stuntingcalculator';
@@ -26,11 +25,12 @@ import GrowthTrackerScreen from './screens/GrowthTrackerScreen';
 import { registerForPushNotificationsAsync } from './screens/services/notificationService';
 
 // Import settings screen
-import SettingsScreen from './screens/settings/SettingsScreen';
-import AccountSettings from './screens/settings/AccountSettings';
-import LanguageSettings from './screens/settings/LanguageSettings';
-import NotificationSettings from './screens/settings/NotificationSettings';
-import EmailConfirmationScreen from './screens/emailverif';
+import SettingsScreen from "./screens/settings/SettingsScreen";
+import AccountSettings from "./screens/settings/AccountSettings";
+import LanguageSettings from "./screens/settings/LanguageSettings";
+import NotificationSettings from "./screens/settings/NotificationSettings";
+import EmailConfirmationScreen from "./screens/emailverif";
+import ChatbotScreen from "./screens/chatbot";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -46,14 +46,17 @@ function MainTabs() {
             case 'Learn':
               iconName = 'menu-book';
               break;
-            case 'Community':
-              iconName = 'people';
+            case "Grow AI":
+              iconName = "chat";
               break;
             case 'ReminderPage':  // Updated from 'Reminder' to 'ReminderPage'
               iconName = 'alarm';
               break;
             case 'ProfileTab':
               iconName = 'person';
+              break;
+            case 'ChatBot':
+              iconName = 'chat';
               break;
             default:
               iconName = 'home';
@@ -84,8 +87,8 @@ function MainTabs() {
         component={EducationalContentScreen}
       />
       <Tab.Screen 
-        name="Community" 
-        component={CommunityScreen}
+        name="ChatBot" 
+        component={ChatbotScreen}
       />
       <Tab.Screen 
         name="ReminderPage" 
@@ -135,17 +138,15 @@ function AppContent() {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="GetStarted" component={GetStartedScreen} />
-          <Stack.Screen name="SignIn" component={SignIn}/>
-          <Stack.Screen name="CreatePassword" component={CreatePassword}/>
-          
-          {/* Main app screens */}
+          <Stack.Screen name="SignIn" component={SignIn} />
+          <Stack.Screen name="CreatePassword" component={CreatePassword} />
           <Stack.Screen name="MainApp" component={MainTabs} />
           <Stack.Screen name="StuntingCalculator" component={StuntingCalculatorScreen} />
           <Stack.Screen name="NutritionPlan" component={NutritionPlanScreen} />
-          <Stack.Screen name="AddReminder" component={AddReminderScreen}/>
-          <Stack.Screen name="GrowthTracker" component={GrowthTrackerScreen}/>
-          
-          {/* Settings screens */}
+          <Stack.Screen name="AddReminder" component={AddReminderScreen} />
+          <Stack.Screen name="GrowthTracker" component={GrowthTrackerScreen} />
+          <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} />
+
           <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
           <Stack.Screen name="AccountSettings" component={AccountSettings} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
