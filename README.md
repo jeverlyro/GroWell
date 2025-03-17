@@ -4,7 +4,7 @@
 
 ## **Features**  
 
-✅ **Stunting Risk Calculator** – AI-based analysis to detect early signs of stunting.  
+✅ **Stunting Risk Calculator** – Analysis to detect early signs of stunting.  
 ✅ **Personalized Nutrition Plans** – Meal recommendations based on age and health data.  
 ✅ **Educational Articles & Videos** – Expert-backed insights on child health and nutrition.  
 ✅ **Reminders & Notifications** – Alerts for immunizations, vitamins, and meal schedules.  
